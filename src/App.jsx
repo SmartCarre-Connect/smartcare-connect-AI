@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import React from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Sidebar from './components/layout/Sidebar';
+import RoleShell from './components/layouts/RoleShell';
+import RoleRoute from './routes/RoleRoute';
 
-// Pages
+import WelcomePage from './pages/WelcomePage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import RoleSelectionPage from './pages/RoleSelectionPage';
 import Dashboard from './pages/Dashboard';
 import MedicalReports from './pages/MedicalReports';
 import RAGChat from './pages/RAGChat';
@@ -26,95 +28,13 @@ import NotificationsPage from './pages/NotificationsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import DoctorFinderPage from './pages/DoctorFinderPage';
 import VitalsTrackerPage from './pages/VitalsTrackerPage';
-import RoleSelectionPage from './pages/RoleSelectionPage';
 import AttendancePage from './pages/AttendancePage';
 import HospitalMapPage from './pages/HospitalMapPage';
-
-import { AnimatePresence, motion } from 'framer-motion';
-
-const PageWrapper = ({ children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.3 }}
-    className="h-full"
-  >
-    {children}
-  </motion.div>
-);
-
-const ProtectedLayout = () => {
-  const { user, loading } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-surface flex items-center justify-center text-xs text-slate-600 font-medium">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
-          Initializing SmartCare-Connect...
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return (
-    <div className="min-h-screen bg-surface flex overflow-hidden">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden relative">
-        {/* Mobile Header Toggle */}
-        <div className="lg:hidden h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center px-4 sticky top-0 z-30">
-          <button 
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-xl bg-slate-100 text-slate-900 hover:bg-brand-50 hover:text-brand-600 transition-colors"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </button>
-          <span className="ml-4 font-bold text-slate-900 tracking-tight">SmartCare-Connect</span>
-        </div>
-
-        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full">
-          <div className="max-w-7xl mx-auto w-full p-4 lg:p-8 lg:pt-10">
-            <AnimatePresence mode="wait">
-              <Routes key={location.pathname}>
-                <Route path="/" element={<PageWrapper><Dashboard /></PageWrapper>} />
-                <Route path="/reports" element={<PageWrapper><MedicalReports /></PageWrapper>} />
-                <Route path="/chat" element={<PageWrapper><RAGChat /></PageWrapper>} />
-                <Route path="/prescriptions" element={<PageWrapper><Prescriptions /></PageWrapper>} />
-                <Route path="/reminders" element={<PageWrapper><Reminders /></PageWrapper>} />
-                <Route path="/summary" element={<PageWrapper><HealthSummaryPage /></PageWrapper>} />
-                <Route path="/medical-images" element={<PageWrapper><MedicalImages /></PageWrapper>} />
-                <Route path="/chat-history" element={<PageWrapper><ChatHistoryPage /></PageWrapper>} />
-                <Route path="/doctor-copilot" element={<PageWrapper><DoctorCopilotPage /></PageWrapper>} />
-                <Route path="/timeline" element={<PageWrapper><TimelinePage /></PageWrapper>} />
-                <Route path="/wellness" element={<PageWrapper><WellnessPage /></PageWrapper>} />
-                <Route path="/emergency" element={<PageWrapper><EmergencyCardPage /></PageWrapper>} />
-                <Route path="/heart-rate" element={<PageWrapper><HeartRateMonitor /></PageWrapper>} />
-                <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
-                <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
-                <Route path="/notifications" element={<PageWrapper><NotificationsPage /></PageWrapper>} />
-                <Route path="/appointments" element={<PageWrapper><AppointmentsPage /></PageWrapper>} />
-                <Route path="/doctors" element={<PageWrapper><DoctorFinderPage /></PageWrapper>} />
-                <Route path="/vitals" element={<PageWrapper><VitalsTrackerPage /></PageWrapper>} />
-                <Route path="/role-selection" element={<PageWrapper><RoleSelectionPage /></PageWrapper>} />
-                <Route path="/attendance" element={<PageWrapper><AttendancePage /></PageWrapper>} />
-                <Route path="/hospital-map" element={<PageWrapper><HospitalMapPage /></PageWrapper>} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </AnimatePresence>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
+import PatientDashboard from './pages/roleDashboards/PatientDashboard';
+import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
+import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
+import HrDashboard from './pages/roleDashboards/HrDashboard';
+import AdminDashboardPage from './pages/roleDashboards/AdminDashboard';
 
 export function App() {
   return (
@@ -122,9 +42,43 @@ export function App() {
       <AuthProvider>
         <Router>
           <Routes>
+            <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/*" element={<ProtectedLayout />} />
+            <Route path="/role-selection" element={<RoleSelectionPage />} />
+
+            <Route element={<RoleShell />}>
+              <Route index element={<Dashboard />} />
+              <Route path="/patient" element={<RoleRoute allowedRoles={['patient']}><PatientDashboard /></RoleRoute>} />
+              <Route path="/doctor" element={<RoleRoute allowedRoles={['doctor']}><DoctorDashboard /></RoleRoute>} />
+              <Route path="/trainee" element={<RoleRoute allowedRoles={['trainee']}><TraineeDashboard /></RoleRoute>} />
+              <Route path="/hr" element={<RoleRoute allowedRoles={['hr']}><HrDashboard /></RoleRoute>} />
+              <Route path="/admin" element={<RoleRoute allowedRoles={['admin']}><AdminDashboardPage /></RoleRoute>} />
+
+              <Route element={<RoleRoute allowedRoles={['patient', 'doctor', 'trainee', 'hr', 'admin']} />}> 
+                <Route path="/reports" element={<MedicalReports />} />
+                <Route path="/chat" element={<RAGChat />} />
+                <Route path="/prescriptions" element={<Prescriptions />} />
+                <Route path="/reminders" element={<Reminders />} />
+                <Route path="/summary" element={<HealthSummaryPage />} />
+                <Route path="/medical-images" element={<MedicalImages />} />
+                <Route path="/chat-history" element={<ChatHistoryPage />} />
+                <Route path="/doctor-copilot" element={<DoctorCopilotPage />} />
+                <Route path="/timeline" element={<TimelinePage />} />
+                <Route path="/wellness" element={<WellnessPage />} />
+                <Route path="/emergency" element={<EmergencyCardPage />} />
+                <Route path="/heart-rate" element={<HeartRateMonitor />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/appointments" element={<AppointmentsPage />} />
+                <Route path="/doctors" element={<DoctorFinderPage />} />
+                <Route path="/vitals" element={<VitalsTrackerPage />} />
+                <Route path="/attendance" element={<AttendancePage />} />
+                <Route path="/hospital-map" element={<HospitalMapPage />} />
+              </Route>
+            </Route>
+
+            <Route path="*" element={<Navigate to="/welcome" replace />} />
           </Routes>
         </Router>
       </AuthProvider>

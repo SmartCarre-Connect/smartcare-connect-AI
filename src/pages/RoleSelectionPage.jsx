@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Briefcase, GraduationCap, ShieldCheck, Users, ArrowRight, Sparkles } from 'lucide-react';
+import { Briefcase, GraduationCap, ShieldCheck, UserRound, ArrowRight, Sparkles, Stethoscope } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { GlassCard } from '../components/ui/GlassCard';
 
 const roles = [
   {
+    id: 'patient',
+    title: 'Patient',
+    description: 'Access appointments, reports, prescriptions and your personal care plan.',
+    icon: UserRound,
+    accent: 'from-blue-600 to-cyan-500',
+  }, {
     id: 'trainee',
     title: 'Trainee',
     description: 'Join the hospital training workflow and record attendance from the campus zone.',
@@ -23,24 +30,19 @@ const roles = [
     id: 'doctor',
     title: 'Doctor',
     description: 'Access hospital resources, appointments, and support tools instantly.',
-    icon: ShieldCheck,
+    icon: Stethoscope,
     accent: 'from-violet-600 to-fuchsia-500',
-  },
-  {
-    id: 'admin',
-    title: 'Admin',
-    description: 'Manage hospital operations, user access and system oversight.',
-    icon: Users,
-    accent: 'from-amber-500 to-orange-500',
   },
 ];
 
 export default function RoleSelectionPage() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState('trainee');
+  const { selectRole } = useAuth();
 
   const handleContinue = () => {
-    navigate(`/attendance?role=${selectedRole}`);
+    selectRole(selectedRole);
+    navigate(`/login?role=${selectedRole}`);
   };
 
   return (
@@ -93,7 +95,7 @@ export default function RoleSelectionPage() {
               onClick={handleContinue}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-90"
             >
-              Continue to attendance
+              Continue securely
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

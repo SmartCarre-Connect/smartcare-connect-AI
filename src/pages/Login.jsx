@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { roleHome } from '../utils/rbac';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -56,7 +57,8 @@ const AnimCounter = ({ end, suffix = '', label }) => {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, selectedRole, selectRole } = useAuth();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -70,12 +72,14 @@ export default function Login() {
   const onSubmit = async (data) => {
     try {
       setError('');
-      await login(data.email, data.password);
-      navigate('/');
+      const user = await login(data.email, data.password);
+      navigate(roleHome(user?.role || selectedRole));
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     }
   };
+
+  useEffect(() => { const role = searchParams.get('role'); if (role) selectRole(role); }, [searchParams, selectRole]);
 
   const particles = [
     { delay: 0, x: 15, y: 20, size: 6, duration: 5 },

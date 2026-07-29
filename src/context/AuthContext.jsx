@@ -2,10 +2,19 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../services/api';
 
 const AuthContext = createContext();
+const roleKey = 'SmartCare-Connect_selected_role';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState(() => localStorage.getItem(roleKey) || 'patient');
+  const [permissions, setPermissions] = useState([]);
+
+  const selectRole = (role) => {
+    localStorage.setItem(roleKey, role);
+    setSelectedRole(role);
+    setPermissions([]);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('SmartCare-Connect_token');
@@ -16,7 +25,7 @@ export const AuthProvider = ({ children }) => {
       blood_group: 'A+',
       allergies: ['Penicillin'],
       emergency_contact: '+1 (555) 948-2301',
-      role: 'patient'
+      role: selectedRole
     };
 
     if (token) {
@@ -48,14 +57,16 @@ export const AuthProvider = ({ children }) => {
       blood_group: 'A+',
       allergies: ['Penicillin'],
       emergency_contact: '+1 (555) 948-2301',
-      role: email && email.includes('admin') ? 'admin' : 'patient'
+      role: selectedRole
     };
     try {
-      const res = await authApi.login({ email, password });
+      const res = await authApi.login({ email, password, role: selectedRole });
       if (res.data?.access_token) {
         localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-        setUser(res.data.user || demo);
-        return res.data;
+        const authenticatedUser = { ...demo, ...res.data, role: res.data.role || selectedRole, name: res.data.full_name || demo.name };
+        setUser(authenticatedUser);
+        selectRole(authenticatedUser.role);
+        return authenticatedUser;
       }
     } catch (err) {
       console.warn("Backend auth call failed, defaulting to demo user", err);
@@ -79,7 +90,7 @@ export const AuthProvider = ({ children }) => {
         blood_group: userData.blood_group || 'O+',
         allergies: userData.allergies || [],
         emergency_contact: userData.emergency_contact || '',
-        role: 'patient'
+        role: selectedRole
       };
       localStorage.setItem('SmartCare-Connect_token', 'demo-mock-jwt-token');
       setUser(demo);
@@ -102,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUserProfile }}>
+    <AuthContext.Provider value={{ user, loading, selectedRole, selectRole, permissions, setPermissions, login, register, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

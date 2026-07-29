@@ -4,7 +4,8 @@ import {
   LayoutDashboard, FileText, Bot, Pill, Clock,
   HeartPulse, ImageIcon, History, UserCheck,
   Calendar, Sparkles, ShieldAlert, User, ShieldCheck,
-  Activity, LogOut, Bell, Stethoscope, MapPin, Navigation
+  Activity, LogOut, Bell, Stethoscope, MapPin, Navigation,
+  ClipboardCheck, UsersRound, Briefcase, GraduationCap, BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../ui/Badge';
@@ -15,66 +16,70 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/welcome');
   };
 
-  const navGroups = [
-    {
-      label: 'Main',
-      items: [
-        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'AI Medical Chat', path: '/chat', icon: Bot, badge: 'RAG' },
-        { name: 'Role Selection', path: '/role-selection', icon: User, badge: 'New' },
-        { name: 'GPS Attendance', path: '/attendance', icon: MapPin, badge: 'Live' },
-        { name: 'Hospital Map', path: '/hospital-map', icon: Navigation, badge: 'Guide' },
-      ]
-    },
-    {
-      label: 'Appointments',
-      items: [
-        { name: 'Find Doctor', path: '/doctors', icon: Stethoscope },
-        { name: 'My Appointments', path: '/appointments', icon: Calendar },
-      ]
-    },
-    {
-      label: 'Medical Data',
-      items: [
-        { name: 'Medical Reports', path: '/reports', icon: FileText, badge: 'PDF' },
-        { name: 'Medical Scans AI', path: '/medical-images', icon: ImageIcon },
-        { name: 'Vitals Tracker', path: '/vitals', icon: Activity },
-        { name: 'Health Summary', path: '/summary', icon: HeartPulse },
-      ]
-    },
-    {
-      label: 'Care Plan',
-      items: [
-        { name: 'Prescription OCR', path: '/prescriptions', icon: Pill },
-        { name: 'Medicine Reminders', path: '/reminders', icon: Clock },
-        { name: 'Heart Rate & Vitals', path: '/heart-rate', icon: Activity, badge: 'PPG' },
-        { name: 'AI Wellness Coach', path: '/wellness', icon: Sparkles },
-      ]
-    },
-    {
-      label: 'History & Support',
-      items: [
-        { name: 'Doctor Copilot', path: '/doctor-copilot', icon: UserCheck },
-        { name: 'Health Timeline', path: '/timeline', icon: Calendar },
-        { name: 'Chat History', path: '/chat-history', icon: History },
-      ]
-    },
-    {
-      label: 'Settings',
-      items: [
-        { name: 'Emergency Card', path: '/emergency', icon: ShieldAlert },
-        { name: 'Profile & Settings', path: '/profile', icon: User },
-      ]
-    }
-  ];
+  const role = user?.role || 'patient';
 
-  if (user?.role === 'admin') {
-    navGroups[5].items.push({ name: 'Admin Dashboard', path: '/admin', icon: ShieldCheck, badge: 'Admin' });
-  }
+  const roleMenus = {
+    patient: [
+      { label: 'Patient Workspace', items: [
+        { name: 'Dashboard', path: '/patient', icon: LayoutDashboard },
+        { name: 'My Appointments', path: '/appointments', icon: Calendar },
+        { name: 'Doctor Availability', path: '/doctors', icon: Stethoscope },
+        { name: 'Medical Reports', path: '/reports', icon: FileText },
+        { name: 'Digital Prescription', path: '/prescriptions', icon: Pill },
+        { name: 'Hospital Navigation', path: '/hospital-map', icon: Navigation },
+        { name: 'AI Assistant', path: '/chat', icon: Bot },
+        { name: 'Emergency', path: '/emergency', icon: ShieldAlert },
+        { name: 'Notifications', path: '/notifications', icon: Bell },
+        { name: 'Profile', path: '/profile', icon: User },
+      ]}
+    ],
+    doctor: [
+      { label: 'Doctor Workspace', items: [
+        { name: 'Dashboard', path: '/doctor', icon: LayoutDashboard },
+        { name: 'Today Appointments', path: '/appointments', icon: Calendar },
+        { name: 'Patient List', path: '/doctors', icon: UsersRound },
+        { name: 'Medical Records', path: '/reports', icon: FileText },
+        { name: 'Digital Prescription', path: '/prescriptions', icon: Pill },
+        { name: 'AI Assistant', path: '/chat', icon: Bot },
+        { name: 'Notifications', path: '/notifications', icon: Bell },
+        { name: 'Profile', path: '/profile', icon: User },
+      ]}
+    ],
+    trainee: [
+      { label: 'Trainee Workspace', items: [
+        { name: 'Dashboard', path: '/trainee', icon: LayoutDashboard },
+        { name: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+        { name: 'Schedule', path: '/appointments', icon: Calendar },
+        { name: 'Hospital Map', path: '/hospital-map', icon: Navigation },
+        { name: 'Notifications', path: '/notifications', icon: Bell },
+        { name: 'Profile', path: '/profile', icon: User },
+      ]}
+    ],
+    hr: [
+      { label: 'HR Workspace', items: [
+        { name: 'Dashboard', path: '/hr', icon: LayoutDashboard },
+        { name: 'Manage Trainees', path: '/attendance', icon: GraduationCap },
+        { name: 'Schedules', path: '/appointments', icon: Calendar },
+        { name: 'Attendance Reports', path: '/vitals', icon: ClipboardCheck },
+        { name: 'Notifications', path: '/notifications', icon: Bell },
+        { name: 'Profile', path: '/profile', icon: User },
+      ]}
+    ],
+    admin: [
+      { label: 'Admin Workspace', items: [
+        { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+        { name: 'Hospital Analytics', path: '/admin', icon: BarChart3 },
+        { name: 'Users', path: '/doctors', icon: UsersRound },
+        { name: 'Notifications', path: '/notifications', icon: Bell },
+        { name: 'Profile', path: '/profile', icon: User },
+      ]}
+    ],
+  };
+
+  const navGroups = roleMenus[role] || roleMenus.patient;
 
   return (
     <>
