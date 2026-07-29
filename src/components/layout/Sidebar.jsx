@@ -5,7 +5,7 @@ import {
   HeartPulse, ImageIcon, History, UserCheck,
   Calendar, Sparkles, ShieldAlert, User, ShieldCheck,
   Activity, LogOut, Bell, Stethoscope, MapPin, Navigation,
-  ClipboardCheck, UsersRound, Briefcase, GraduationCap, BarChart3
+  ClipboardCheck, UsersRound, Briefcase, GraduationCap, BarChart3, Headset
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../ui/Badge';
@@ -54,6 +54,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Attendance', path: '/attendance', icon: ClipboardCheck },
         { name: 'Schedule', path: '/appointments', icon: Calendar },
         { name: 'Hospital Map', path: '/hospital-map', icon: Navigation },
+        { name: 'Help Center', path: '/help-center', icon: Headset },
         { name: 'Notifications', path: '/notifications', icon: Bell },
         { name: 'Profile', path: '/profile', icon: User },
       ]}
@@ -64,6 +65,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Manage Trainees', path: '/attendance', icon: GraduationCap },
         { name: 'Schedules', path: '/appointments', icon: Calendar },
         { name: 'Attendance Reports', path: '/vitals', icon: ClipboardCheck },
+        { name: 'Help Center', path: '/help-center', icon: Headset },
         { name: 'Notifications', path: '/notifications', icon: Bell },
         { name: 'Profile', path: '/profile', icon: User },
       ]}
@@ -73,6 +75,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
         { name: 'Hospital Analytics', path: '/admin', icon: BarChart3 },
         { name: 'Users', path: '/doctors', icon: UsersRound },
+        { name: 'Help Center', path: '/help-center', icon: Headset },
         { name: 'Notifications', path: '/notifications', icon: Bell },
         { name: 'Profile', path: '/profile', icon: User },
       ]}

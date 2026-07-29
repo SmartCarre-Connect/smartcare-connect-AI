@@ -30,6 +30,7 @@ import DoctorFinderPage from './pages/DoctorFinderPage';
 import VitalsTrackerPage from './pages/VitalsTrackerPage';
 import AttendancePage from './pages/AttendancePage';
 import HospitalMapPage from './pages/HospitalMapPage';
+import HelpCenter from './pages/HelpCenter';
 import PatientDashboard from './pages/roleDashboards/PatientDashboard';
 import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
 import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
@@ -75,6 +76,7 @@ export function App() {
                 <Route path="/vitals" element={<VitalsTrackerPage />} />
                 <Route path="/attendance" element={<AttendancePage />} />
                 <Route path="/hospital-map" element={<HospitalMapPage />} />
+                <Route path="/help-center" element={<HelpCenter />} />
               </Route>
             </Route>
 

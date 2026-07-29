@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PremiumButton } from '../components/ui/PremiumButton';
+import QuickActions from '../components/dashboard/QuickActions';
 
 const AnimatedCircle = ({ score }) => {
   const radius = 50;
@@ -175,6 +176,19 @@ export default function Dashboard() {
           </GlassCard>
         </motion.div>
       </div>
+
+      <motion.div variants={itemVariants} className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Quick Actions</h2>
+            <p className="text-sm text-slate-500">Jump directly to the help center, reports, appointments and patient tools.</p>
+          </div>
+          <Link to="/help-center" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+            Go to Help Center
+          </Link>
+        </div>
+        <QuickActions />
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Upcoming Medications */}

@@ -100,6 +100,13 @@ export const emergencyApi = {
   getCard: () => api.get('/emergency/card'),
 };
 
+export const helpCenterApi = {
+  ask: (question, language = 'auto') => api.post('/ai/help-center', {
+    message: question,
+    language,
+  }),
+};
+
 export const adminApi = {
   getStats: () => api.get('/dashboard/stats'),
 };
