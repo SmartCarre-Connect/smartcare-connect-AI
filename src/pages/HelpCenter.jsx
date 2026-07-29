@@ -56,7 +56,8 @@ function HelpCenter() {
     <div className="space-y-6 pb-12">
       <PageHeader
         title="Help Center"
-          subtitle="Ask the AI agent anything about the hospital, app, or your care journey. Supports English, Hindi, Marathi and regional languages."
+        subtitle="Ask the AI agent anything about the hospital, app, or your care journey. Supports English, Hindi, Marathi and regional languages."
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card padding="large" className="space-y-6">
