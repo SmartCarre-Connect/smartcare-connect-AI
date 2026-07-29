@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 20971520  # 20MB
 
     # CORS
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "https://smartcare-connect-ai.vercel.app"
 
     @property
     def cors_origins_list(self) -> List[str]:
