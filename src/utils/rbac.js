@@ -1,6 +1,9 @@
 export const ROLES = ['patient', 'doctor', 'trainee', 'hr', 'admin'];
 
-export const roleHome = (role) => `/${ROLES.includes(role) ? role : 'patient'}`;
+export const roleHome = (role) => {
+  const normalizedRole = ROLES.includes(role) ? role : 'patient';
+  return normalizedRole === 'admin' ? '/admin' : `/${normalizedRole}`;
+};
 
 export const roleMenus = {
   patient: [

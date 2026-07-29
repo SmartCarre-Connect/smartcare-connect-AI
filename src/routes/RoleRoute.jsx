@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { hasPermission } from './rolePermissions';
 
-export default function RoleRoute({ allowedRoles, permission, redirectTo = '/welcome' }) {
+export default function RoleRoute({ allowedRoles, permission, redirectTo = '/welcome', children }) {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -19,5 +19,5 @@ export default function RoleRoute({ allowedRoles, permission, redirectTo = '/wel
     return <Navigate to={redirectTo} replace />;
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 }
