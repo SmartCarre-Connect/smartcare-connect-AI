@@ -72,12 +72,9 @@ export default function Login() {
   const onSubmit = async (data) => {
     try {
       setError('');
-      const user = await login(data.email, data.password);
-      const resolvedRole = user?.role || selectedRole;
-      // Always navigate into the app shell after login. The RoleShell auto-starts the
-      // in-app onboarding overlay for first-time users, so we no longer redirect to
-      // a separate presenter page on login.
-      navigate(roleHome(resolvedRole));
+      await login(data.email, data.password);
+      // After login, direct users to role selection before entering the app.
+      navigate('/role-selection');
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     }

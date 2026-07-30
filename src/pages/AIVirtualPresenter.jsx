@@ -475,13 +475,43 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
                 <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold">{t('presenter.live', 'Live Guide')}</div>
               </div>
               <div className="mt-6 flex min-h-[220px] items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 via-brand-500/20 to-slate-800 p-6">
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border border-white/20 bg-white/10">
-                  <motion.div animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 1.4, repeat: Infinity }} className="absolute inset-4 rounded-full border border-white/15" />
-                  <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 1.2, repeat: Infinity }} className="absolute top-10 h-16 w-16 rounded-full bg-white/90" />
-                  <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 0.9, repeat: Infinity }} className="absolute top-16 h-8 w-8 rounded-full bg-slate-900" />
-                  <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 1, repeat: Infinity }} className="absolute bottom-10 h-12 w-24 rounded-t-full bg-cyan-400/70" />
-                </div>
+                {mediaSource?.url ? (
+                  <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-900">
+                    {/(mp4|webm|mov|m4v)(\?.*)?$/i.test(mediaSource.url) || mediaSource.type === 'video' ? (
+                      <video
+                        src={mediaSource.url}
+                        autoPlay
+                        muted
+                        playsInline
+                        controls
+                        className="h-full w-full object-cover"
+                      />
+                    ) : /(?:jpe?g|png|gif|webp|svg)(\?.*)?$/i.test(mediaSource.url) || mediaSource.type === 'image' ? (
+                      <img src={mediaSource.url} alt={activeSection?.title || 'Preview media'} className="h-full w-full object-cover" />
+                    ) : /(?:mp3|wav|ogg|m4a)(\?.*)?$/i.test(mediaSource.url) || mediaSource.type === 'audio' ? (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-950 text-slate-100">
+                        <audio src={mediaSource.url} controls className="w-full p-4" />
+                      </div>
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-slate-950 text-slate-100">
+                        <p className="text-center text-sm">Preview available for media URL.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="relative flex h-40 w-40 items-center justify-center rounded-full border border-white/20 bg-white/10">
+                    <motion.div animate={{ scale: [1, 1.02, 1] }} transition={{ duration: 1.4, repeat: Infinity }} className="absolute inset-4 rounded-full border border-white/15" />
+                    <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 1.2, repeat: Infinity }} className="absolute top-10 h-16 w-16 rounded-full bg-white/90" />
+                    <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 0.9, repeat: Infinity }} className="absolute top-16 h-8 w-8 rounded-full bg-slate-900" />
+                    <motion.div animate={{ y: [0, -2, 0] }} transition={{ duration: 1, repeat: Infinity }} className="absolute bottom-10 h-12 w-24 rounded-t-full bg-cyan-400/70" />
+                  </div>
+                )}
               </div>
+              {mediaSource?.url && (
+                <div className="mt-5 rounded-2xl border border-white/10 bg-white/10 p-3 text-sm leading-7 text-slate-200">
+                  {mediaSource.title || `${activeSection?.title} preview`}
+                </div>
+              )}
               {subtitlesOn && (
                 <div className="mt-5 rounded-2xl border border-white/10 bg-white/10 p-3 text-sm leading-7" style={{ fontSize: `${fontSize}px` }}>
                   {activeSection?.script}

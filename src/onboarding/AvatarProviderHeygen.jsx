@@ -31,22 +31,29 @@ export default function AvatarProviderHeygen({ role = 'patient', language = 'en'
     const poll = async () => {
       try {
         const res = await getJobStatus(jobId);
-        setStatus(res.status || res.state || 'unknown');
-        // HeyGen typically returns output locations under some property; try common ones
-        const url = res.output_url || res.result?.url || res.data?.url || res.files?.[0]?.url;
+        const statusValue = res.status || res.state || res.result?.status || res.data?.status || 'unknown';
+        setStatus(statusValue);
+        const url = res.output_url
+          || res.result?.url
+          || res.data?.url
+          || res.files?.[0]?.url
+          || res.output?.[0]?.url
+          || res.outputs?.[0]?.url
+          || res.result?.outputs?.[0]?.url
+          || res.data?.outputs?.[0]?.url
+          || res.data?.result?.outputs?.[0]?.url;
         if (url && mounted) {
           setVideoUrl(url);
-          // persist to localStorage for presenter
           try {
             const lib = JSON.parse(window.localStorage.getItem('smartcare-presenter-media') || '{}');
-            lib[`${role}_tour_${language}`] = { url };
+            lib[`${role}_tour_${language}`] = { url, status: statusValue };
             window.localStorage.setItem('smartcare-presenter-media', JSON.stringify(lib));
           } catch {}
         } else if (mounted) {
           setTimeout(poll, 3000);
         }
       } catch (e) {
-        setTimeout(poll, 5000);
+        if (mounted) setTimeout(poll, 5000);
       }
     };
     poll();
@@ -85,9 +92,15 @@ export default function AvatarProviderHeygen({ role = 'patient', language = 'en'
   const handleGenerate = async () => {
     try {
       const payload = await generateVideo(avatarId, script, language, 'female', `${role}-tour-${language}`);
-      // assume payload contains job id under `id` or `job_id`
-      const id = payload.id || payload.job_id || payload.data?.id;
-      setJobId(id);
+      const id = payload.id || payload.job_id || payload.data?.id || payload.data?.job_id;
+      if (id) {
+        setJobId(id);
+        try {
+          const lib = JSON.parse(window.localStorage.getItem('smartcare-presenter-media') || '{}');
+          lib[`${role}_tour_${language}`] = { jobId: id, status: 'created' };
+          window.localStorage.setItem('smartcare-presenter-media', JSON.stringify(lib));
+        } catch {}
+      }
     } catch (e) {
       console.error('HeyGen generate error', e);
     }

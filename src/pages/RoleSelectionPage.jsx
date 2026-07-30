@@ -9,7 +9,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 export default function RoleSelectionPage() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState('trainee');
-  const { selectRole } = useAuth();
+  const { user, selectRole } = useAuth();
   const { t } = useLanguage();
 
   const roles = [
@@ -44,6 +44,10 @@ export default function RoleSelectionPage() {
 
   const handleContinue = () => {
     selectRole(selectedRole);
+    if (user) {
+      navigate(roleHome(selectedRole));
+      return;
+    }
     navigate(`/login?role=${selectedRole}`);
   };
 

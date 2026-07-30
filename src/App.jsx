@@ -43,10 +43,12 @@ import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
 import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
 import HrDashboard from './pages/roleDashboards/HrDashboard';
 import AdminDashboardPage from './pages/roleDashboards/AdminDashboard';
+import IntroVideoPage from './pages/IntroVideoPage';
 
 function InitialRouteRedirect() {
   const { user, selectedRole, loading } = useAuth();
-  const languageSelected = typeof window !== 'undefined' && window.localStorage.getItem('selected_language');
+    const languageSelected = typeof window !== 'undefined' && window.localStorage.getItem('selected_language');
+  const introWatched = typeof window !== 'undefined' && window.localStorage.getItem('smartcare-intro-watched') === 'true';
   const role = user?.role || selectedRole || (typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_selected_role')) || 'patient';
   const onboardingCompleted = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${role}`) === 'true';
 
@@ -55,14 +57,18 @@ function InitialRouteRedirect() {
   }
 
   if (user) {
-    // User is authenticated — take them to their role home (RoleShell will automatically
-    // start the in-app onboarding overlay on first login). This prevents navigating to
-    // a separate `/presenter` page for first-time onboarding.
     return <Navigate to={roleHome(role)} replace />;
   }
 
-  const target = languageSelected ? '/splash' : '/language-selection';
-  return <Navigate to={target} replace />;
+  if (!languageSelected) {
+    return <Navigate to="/language-selection" replace />;
+  }
+
+  if (!introWatched) {
+    return <Navigate to="/intro-video" replace />;
+  }
+
+  return <Navigate to="/splash" replace />;
 }
 
 export function App() {
@@ -75,6 +81,7 @@ export function App() {
             <Routes>
               <Route path="/" element={<InitialRouteRedirect />} />
               <Route path="/language-selection" element={<LanguageSelectionPage />} />
+              <Route path="/intro-video" element={<IntroVideoPage />} />
               <Route path="/splash" element={<SplashScreen />} />
               <Route path="/welcome" element={<WelcomePage />} />
               <Route path="/login" element={<Login />} />

@@ -14,12 +14,7 @@ export default function LanguageSelectionPage() {
   const { language, setLanguage, currentLanguage } = useLanguage();
 
   const handleContinue = () => {
-    const storedLanguage = window.localStorage.getItem('selected_language');
-    if (storedLanguage) {
-      navigate('/splash', { replace: true });
-      return;
-    }
-    navigate('/splash', { replace: true });
+    navigate('/intro-video', { replace: true });
   };
 
   return (
