@@ -1,0 +1,6 @@
+{
+  "name": "SmartCare Connect AI",
+  "description": "SmartCare Connect AI - Multilingual Hospital Management Platform with OPD Registration, Medicine Stock, Doctor Availability, AI Avatar Video Walkthrough, and AI Voice Calling Agent in Marathi, Hindi, and English.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
