@@ -1,0 +1,74 @@
+{
+  "common": {
+    "continue": "Continue",
+    "language": "Language",
+    "currentLanguage": "Current Language",
+    "changeLanguage": "Change Language",
+    "loading": "Preparing your experience",
+    "save": "Save"
+  },
+  "app": {
+    "title": "Welcome to SmartCare Connect",
+    "subtitle": "Choose your preferred language",
+    "brand": "AI Powered Smart Hospital Operating System"
+  },
+  "welcome": {
+    "badge": "AI Powered Smart Hospital Operating System",
+    "title": "SmartCare Connect",
+    "subtitle": "A secure, role based hospital experience designed for patients, doctors, trainees, HR, and administrators.",
+    "login": "Login",
+    "register": "Register",
+    "about": "About Hospital",
+    "contact": "Contact",
+    "guide": "Watch AI Guide",
+    "secureTitle": "Secure access",
+    "secureBody": "Every workflow is protected with role-aware routing and permissions.",
+    "clinicalTitle": "Clinical operations",
+    "clinicalBody": "Appointments, prescriptions, attendance, and notices all stay role-specific.",
+    "workflowTitle": "Enterprise workflow",
+    "workflowBody": "Designed to look and behave like a modern hospital management platform."
+  },
+  "roles": {
+    "title": "Choose your role",
+    "subtitle": "Select the role that best matches your workflow so the app can guide you to the right journey, attendance experience, and hospital tools.",
+    "continue": "Continue securely",
+    "selectedRole": "Selected role",
+    "patientTitle": "Patient",
+    "patientBody": "Access appointments, reports, prescriptions and your personal care plan.",
+    "traineeTitle": "Trainee",
+    "traineeBody": "Join the hospital training workflow and record attendance from the campus zone.",
+    "hrTitle": "HR",
+    "hrBody": "Coordinate employee onboarding, attendance and operational visibility.",
+    "doctorTitle": "Doctor",
+    "doctorBody": "Access hospital resources, appointments, and support tools instantly."
+  },
+  "login": {
+    "title": "Secure access",
+    "subtitle": "Access your personalized hospital workspace with secure sign-in."
+  },
+  "profile": {
+    "title": "User Profile & Application Settings",
+    "subtitle": "Manage health credentials, notification settings, and display theme.",
+    "languageTitle": "Language Preferences",
+    "languageBody": "Switch the interface language instantly for the full experience.",
+    "themeTitle": "Theme & Display Settings",
+    "themeBody": "Current mode: {mode}",
+    "currentLanguage": "Current language"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "appointments": "My Appointments",
+    "reports": "Medical Reports",
+    "prescriptions": "Digital Prescription",
+    "hospitalNavigation": "Hospital Navigation",
+    "aiAssistant": "AI Assistant",
+    "emergency": "Emergency",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "signOut": "Sign Out"
+  },
+  "splash": {
+    "title": "SmartCare Connect",
+    "subtitle": "Preparing your secure care experience"
+  }
+}

@@ -3,6 +3,9 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from '../layout/Sidebar';
+import FloatingAssistant from '../../components/ui/FloatingAssistant';
+import { useOnboarding } from '../../onboarding/OnboardingContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function RoleShell() {
   const { user, loading } = useAuth();
@@ -23,6 +26,21 @@ export default function RoleShell() {
   if (!user) {
     return <Navigate to="/welcome" replace />;
   }
+
+  const onboarding = useOnboarding();
+  const { language } = useLanguage();
+
+  // Start onboarding automatically if user has not completed onboarding for their role
+  React.useEffect(() => {
+    try {
+      const completed = window.localStorage.getItem(`smartcare-onboarding-complete:${user.role}`) === 'true';
+      if (!completed && !onboarding.active) {
+        onboarding.start({ role: user.role, language: language });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [user?.role, onboarding, language]);
 
   return (
     <div className="min-h-screen bg-surface flex overflow-hidden">
@@ -54,6 +72,11 @@ export default function RoleShell() {
             </AnimatePresence>
           </div>
         </main>
+          <FloatingAssistant />
+          {onboarding?.active ? (
+            // Onboarding UI overlays and floating assistant
+            React.createElement(require('../../onboarding/OnboardingUI').default)
+          ) : null}
       </div>
     </div>
   );

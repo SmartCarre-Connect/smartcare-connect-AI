@@ -2,6 +2,8 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { OnboardingProvider } from './onboarding/OnboardingContext';
 import RoleShell from './components/layouts/RoleShell';
 import RoleRoute from './routes/RoleRoute';
 
@@ -9,7 +11,14 @@ import WelcomePage from './pages/WelcomePage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import RoleSelectionPage from './pages/RoleSelectionPage';
+import LanguageSelectionPage from './pages/LanguageSelectionPage';
+import SplashScreen from './pages/SplashScreen';
 import Dashboard from './pages/Dashboard';
+
+function InitialRouteRedirect() {
+  const target = typeof window !== 'undefined' && window.localStorage.getItem('selected_language') ? '/splash' : '/language-selection';
+  return <Navigate to={target} replace />;
+}
 import MedicalReports from './pages/MedicalReports';
 import RAGChat from './pages/RAGChat';
 import Prescriptions from './pages/Prescriptions';
@@ -31,6 +40,8 @@ import VitalsTrackerPage from './pages/VitalsTrackerPage';
 import AttendancePage from './pages/AttendancePage';
 import HospitalMapPage from './pages/HospitalMapPage';
 import HelpCenter from './pages/HelpCenter';
+import AIVirtualPresenter from './pages/AIVirtualPresenter';
+import PresentationManager from './pages/PresentationManager';
 import PatientDashboard from './pages/roleDashboards/PatientDashboard';
 import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
 import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
@@ -41,12 +52,19 @@ export function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/welcome" element={<WelcomePage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/role-selection" element={<RoleSelectionPage />} />
+        <LanguageProvider>
+          <OnboardingProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<InitialRouteRedirect />} />
+              <Route path="/language-selection" element={<LanguageSelectionPage />} />
+              <Route path="/splash" element={<SplashScreen />} />
+              <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/role-selection" element={<RoleSelectionPage />} />
+              <Route path="/presenter" element={<AIVirtualPresenter />} />
+              <Route path="/presenter-manager" element={<PresentationManager />} />
 
             <Route element={<RoleShell />}>
               <Route index element={<Dashboard />} />
@@ -80,9 +98,11 @@ export function App() {
               </Route>
             </Route>
 
-            <Route path="*" element={<Navigate to="/welcome" replace />} />
-          </Routes>
-        </Router>
+              <Route path="*" element={<InitialRouteRedirect />} />
+            </Routes>
+          </Router>
+          </OnboardingProvider>
+        </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>
   );
