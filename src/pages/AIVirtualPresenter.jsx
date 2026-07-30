@@ -185,7 +185,7 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
   const sections = useMemo(() => {
     // if onboarding has active published steps for the role, prefer those
     const published = onboarding?.getStepsForRole?.(roleKey) || [];
-    const source = onboarding?.active && published.length > 0 ? published : roleProfile.steps;
+    const source = published.length > 0 ? published : roleProfile.steps;
     return source.map((step) => ({
       ...step,
       title: getLocalizedCopy(language, step.titleEn, step.titleHi, step.titleMr),
@@ -197,7 +197,14 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
   }, [language, roleProfile, onboarding, roleKey]);
 
   const totalDuration = useMemo(() => sections.reduce((sum, section) => sum + Number(section.duration ?? 8), 0), [sections]);
-  const activeSection = sections[activeIndex] || sections[0];
+  const emptySections = sections.length === 0;
+  const activeSection = sections[activeIndex] || sections[0] || {
+    title: t('presenter.fallbackTitle', 'No onboarding steps available'),
+    badge: t('presenter.fallbackBadge', 'Fallback'),
+    script: t('presenter.fallbackScript', 'The AI presenter is ready, but no onboarding content has been configured yet. Open Presentation Manager to add a role tour or continue to the dashboard.'),
+    duration: 8,
+    selector: null,
+  };
   const normalizedPlaybackTime = Number.isFinite(playbackTime) ? playbackTime : 0;
   const progressPercent = totalDuration > 0 ? (normalizedPlaybackTime / totalDuration) * 100 : 0;
 
@@ -242,6 +249,12 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
       setIsPlaying(true);
     }
   }, [onboarding?.currentStepIndex, onboarding?.active, sections]);
+
+  useEffect(() => {
+    if (!onboarding?.active && sections.length > 0) {
+      onboarding?.start?.({ role: roleKey, language });
+    }
+  }, [onboarding, roleKey, language, sections.length]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isPlaying || !activeSection) return;
@@ -386,12 +399,23 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <Card padding="large" className="space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{currentLanguage?.nativeLabel || 'English'} • {roleProfile.badge}</div>
-              <h2 className="text-xl font-bold text-slate-900">{activeSection?.title}</h2>
+          {emptySections ? (
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-700">
+              <p className="text-sm font-semibold text-slate-900">{t('presenter.noStepsTitle', 'No tour content available')}</p>
+              <p className="mt-3 text-sm text-slate-600">{t('presenter.noStepsBody', 'The AI presenter is ready, but no onboarding steps have been configured yet. Use the presentation manager to create a role-based tour or continue to your dashboard.')}</p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Button onClick={() => navigate('/presenter-manager')} variant="secondary">{t('presenter.setupTour', 'Open Presentation Manager')}</Button>
+                <Button onClick={handleComplete} variant="primary">{t('presenter.continue', 'Continue to dashboard')}</Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{currentLanguage?.nativeLabel || 'English'} • {roleProfile.badge}</div>
+                  <h2 className="text-xl font-bold text-slate-900">{activeSection?.title}</h2>
+                </div>
+                <div className="flex items-center gap-2">
               <Button onClick={() => setIsPlaying((value) => !value)} icon={isPlaying ? Pause : Play} variant="primary">
                 {isPlaying ? t('presenter.pause', 'Pause') : t('presenter.play', 'Play')}
               </Button>

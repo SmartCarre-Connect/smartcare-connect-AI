@@ -160,7 +160,7 @@ function HelpCenter() {
           </div>
           <div className="rounded-3xl border border-slate-200 bg-brand-50 p-4 mt-4">
             <p className="text-sm font-semibold text-brand-900">Need a narrated video guide?</p>
-            <p className="text-sm text-brand-700 mt-2">Visit the Hospital Map page for the AI avatar walkthrough in English, Hindi, or Marathi.</p>
+            <p className="text-sm text-brand-700 mt-2">Use the premium AI virtual presenter for an interactive narrated walkthrough in English, Hindi, or Marathi.</p>
           </div>
 
           <div className="grid gap-4">
@@ -180,10 +180,10 @@ function HelpCenter() {
               <p className="text-sm font-semibold text-brand-900">Watch the video walkthrough</p>
               <p className="text-sm text-brand-700 mt-2">Go to Hospital Map for the AI avatar tutorial in English, Hindi, or Marathi.</p>
               <Link
-                to="/hospital-map"
+                to="/presenter"
                 className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
               >
-                Open Hospital Map Guide
+                Open AI Virtual Presenter
               </Link>
             </div>
           </div>

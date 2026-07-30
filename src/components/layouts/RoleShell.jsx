@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from '../layout/Sidebar';
 import FloatingAssistant from '../../components/ui/FloatingAssistant';
+import OnboardingUI from '../../onboarding/OnboardingUI';
 import { useOnboarding } from '../../onboarding/OnboardingContext';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -73,10 +74,7 @@ export default function RoleShell() {
           </div>
         </main>
           <FloatingAssistant />
-          {onboarding?.active ? (
-            // Onboarding UI overlays and floating assistant
-            React.createElement(require('../../onboarding/OnboardingUI').default)
-          ) : null}
+          {onboarding?.active ? <OnboardingUI /> : null}
       </div>
     </div>
   );

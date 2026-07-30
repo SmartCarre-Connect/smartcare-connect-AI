@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import DisclaimerBanner from '../components/ui/DisclaimerBanner';
-import { User, Shield, Moon, Sun, Globe, Bell, Save } from 'lucide-react';
+import { User, Shield, Moon, Sun, Globe, Bell, Save, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const ProfilePage = () => {
   const { user, updateUserProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, t, currentLanguage, languageOptions } = useLanguage();
 
   const [name, setName] = useState(user?.name || '');
   const [bloodGroup, setBloodGroup] = useState(user?.blood_group || 'O+');
@@ -33,9 +36,9 @@ export const ProfilePage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <User className="w-6 h-6 text-blue-500" /> User Profile & Application Settings
+            <User className="w-6 h-6 text-blue-500" /> {t('profile.title', 'User Profile & Application Settings')}
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Manage health credentials, notification settings, and display theme.</p>
+          <p className="text-xs text-slate-500 mt-1">{t('profile.subtitle', 'Manage health credentials, notification settings, and display theme.')}</p>
         </div>
       </div>
 
@@ -111,7 +114,41 @@ export const ProfilePage = () => {
         </form>
 
         <div className="pt-6 border-t border-slate-200 space-y-4">
-          <h3 className="text-sm font-bold text-slate-900">Theme & Display Settings</h3>
+          <h3 className="text-sm font-bold text-slate-900">{t('profile.languageTitle', 'Language Preferences')}</h3>
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-3">
+              <Globe className="w-5 h-5 text-blue-500" />
+              <div>
+                <div className="font-semibold text-xs text-slate-900">{t('profile.currentLanguage', 'Current language')}</div>
+                <div className="text-[11px] text-slate-500">{currentLanguage.nativeLabel}</div>
+              </div>
+            </div>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+            >
+              {languageOptions.map((option) => (
+                <option key={option.code} value={option.code}>{option.nativeLabel}</option>
+              ))}
+            </select>
+          </div>
+
+          <h3 className="text-sm font-bold text-slate-900">{t('profile.presenterTitle', 'AI Presenter Access')}</h3>
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-blue-500" />
+              <div>
+                <div className="font-semibold text-xs text-slate-900">{t('profile.presenterLabel', 'Open the AI virtual presenter')}</div>
+                <div className="text-[11px] text-slate-500">{t('profile.presenterDescription', 'Replay the premium onboarding tour anytime from settings.')}</div>
+              </div>
+            </div>
+            <Link to="/presenter" className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold border border-blue-500">
+              {t('profile.presenterAction', 'Launch Tour')}
+            </Link>
+          </div>
+
+          <h3 className="text-sm font-bold text-slate-900">{t('profile.themeTitle', 'Theme & Display Settings')}</h3>
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div className="flex items-center gap-3">
               {theme === 'dark' ? <Moon className="w-5 h-5 text-amber-400" /> : <Sun className="w-5 h-5 text-amber-500" />}

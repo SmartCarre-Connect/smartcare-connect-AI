@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { reportsApi, prescriptionsApi, remindersApi, wellnessApi } from '../services/api';
 import { 
   FileText, Pill, Droplet, Activity, 
-  Sparkles, Heart, Clock, ChevronRight 
+  Sparkles, Heart, Clock, ChevronRight, Play 
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -109,12 +109,15 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <Link to="/chat">
                   <PremiumButton icon={Sparkles}>Ask AI Assistant</PremiumButton>
                 </Link>
                 <Link to="/reports">
                   <PremiumButton variant="secondary" icon={FileText}>View Reports</PremiumButton>
+                </Link>
+                <Link to="/presenter">
+                  <PremiumButton variant="secondary" icon={Play}>Watch App Tour</PremiumButton>
                 </Link>
               </div>
             </div>

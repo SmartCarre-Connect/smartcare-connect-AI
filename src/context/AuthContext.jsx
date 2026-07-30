@@ -70,10 +70,10 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       console.warn("Backend auth call failed, defaulting to demo user", err);
+      localStorage.setItem('SmartCare-Connect_token', 'demo-mock-jwt-token');
+      setUser(demo);
+      return demo;
     }
-    localStorage.setItem('SmartCare-Connect_token', 'demo-mock-jwt-token');
-    setUser(demo);
-    return { user: demo };
   };
 
   const register = async (userData) => {

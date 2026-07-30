@@ -3,42 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Briefcase, GraduationCap, ShieldCheck, UserRound, ArrowRight, Sparkles, Stethoscope } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { GlassCard } from '../components/ui/GlassCard';
-
-const roles = [
-  {
-    id: 'patient',
-    title: 'Patient',
-    description: 'Access appointments, reports, prescriptions and your personal care plan.',
-    icon: UserRound,
-    accent: 'from-blue-600 to-cyan-500',
-  }, {
-    id: 'trainee',
-    title: 'Trainee',
-    description: 'Join the hospital training workflow and record attendance from the campus zone.',
-    icon: GraduationCap,
-    accent: 'from-emerald-500 to-teal-500',
-  },
-  {
-    id: 'hr',
-    title: 'HR',
-    description: 'Coordinate employee onboarding, attendance and operational visibility.',
-    icon: Briefcase,
-    accent: 'from-blue-600 to-cyan-500',
-  },
-  {
-    id: 'doctor',
-    title: 'Doctor',
-    description: 'Access hospital resources, appointments, and support tools instantly.',
-    icon: Stethoscope,
-    accent: 'from-violet-600 to-fuchsia-500',
-  },
-];
 
 export default function RoleSelectionPage() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState('trainee');
   const { selectRole } = useAuth();
+  const { t } = useLanguage();
+
+  const roles = [
+    {
+      id: 'patient',
+      title: t('roles.patientTitle', 'Patient'),
+      description: t('roles.patientBody', 'Access appointments, reports, prescriptions and your personal care plan.'),
+      icon: UserRound,
+      accent: 'from-blue-600 to-cyan-500',
+    }, {
+      id: 'trainee',
+      title: t('roles.traineeTitle', 'Trainee'),
+      description: t('roles.traineeBody', 'Join the hospital training workflow and record attendance from the campus zone.'),
+      icon: GraduationCap,
+      accent: 'from-emerald-500 to-teal-500',
+    },
+    {
+      id: 'hr',
+      title: t('roles.hrTitle', 'HR'),
+      description: t('roles.hrBody', 'Coordinate employee onboarding, attendance and operational visibility.'),
+      icon: Briefcase,
+      accent: 'from-blue-600 to-cyan-500',
+    },
+    {
+      id: 'doctor',
+      title: t('roles.doctorTitle', 'Doctor'),
+      description: t('roles.doctorBody', 'Access hospital resources, appointments, and support tools instantly.'),
+      icon: Stethoscope,
+      accent: 'from-violet-600 to-fuchsia-500',
+    },
+  ];
 
   const handleContinue = () => {
     selectRole(selectedRole);
@@ -57,9 +59,9 @@ export default function RoleSelectionPage() {
             <Sparkles className="h-4 w-4" />
             <span>SmartCare Experience Hub</span>
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">Choose your role</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{t('roles.title', 'Choose your role')}</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
-            Select the role that best matches your workflow so the app can guide you to the right journey, attendance experience, and hospital tools.
+            {t('roles.subtitle', 'Select the role that best matches your workflow so the app can guide you to the right journey, attendance experience, and hospital tools.')}
           </p>
         </motion.div>
 
@@ -88,14 +90,14 @@ export default function RoleSelectionPage() {
         <GlassCard className="!p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Selected role</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{t('roles.selectedRole', 'Selected role')}</p>
               <p className="mt-2 text-2xl font-bold text-slate-900">{roles.find((role) => role.id === selectedRole)?.title}</p>
             </div>
             <button
               onClick={handleContinue}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-90"
             >
-              Continue securely
+              {t('roles.continue', 'Continue securely')}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

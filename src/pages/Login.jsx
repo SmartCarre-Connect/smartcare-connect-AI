@@ -73,7 +73,10 @@ export default function Login() {
     try {
       setError('');
       const user = await login(data.email, data.password);
-      navigate(roleHome(user?.role || selectedRole));
+      const resolvedRole = user?.role || selectedRole;
+      const onboardingCompleted = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${resolvedRole}`) === 'true';
+      const nextPath = onboardingCompleted ? roleHome(resolvedRole) : `/presenter?role=${resolvedRole}`;
+      navigate(nextPath);
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     }

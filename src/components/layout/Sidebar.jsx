@@ -8,10 +8,12 @@ import {
   ClipboardCheck, UsersRound, Briefcase, GraduationCap, BarChart3, Headset
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import Badge from '../ui/Badge';
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -24,60 +26,60 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const roleMenus = {
     patient: [
       { label: 'Patient Workspace', items: [
-        { name: 'Dashboard', path: '/patient', icon: LayoutDashboard },
-        { name: 'My Appointments', path: '/appointments', icon: Calendar },
+        { name: t('navigation.dashboard', 'Dashboard'), path: '/patient', icon: LayoutDashboard },
+        { name: t('navigation.appointments', 'My Appointments'), path: '/appointments', icon: Calendar },
         { name: 'Doctor Availability', path: '/doctors', icon: Stethoscope },
-        { name: 'Medical Reports', path: '/reports', icon: FileText },
-        { name: 'Digital Prescription', path: '/prescriptions', icon: Pill },
-        { name: 'Hospital Navigation', path: '/hospital-map', icon: Navigation },
-        { name: 'AI Assistant', path: '/chat', icon: Bot },
-        { name: 'Emergency', path: '/emergency', icon: ShieldAlert },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Profile', path: '/profile', icon: User },
+        { name: t('navigation.reports', 'Medical Reports'), path: '/reports', icon: FileText },
+        { name: t('navigation.prescriptions', 'Digital Prescription'), path: '/prescriptions', icon: Pill },
+        { name: t('navigation.hospitalNavigation', 'Hospital Navigation'), path: '/hospital-map', icon: Navigation },
+        { name: t('navigation.aiAssistant', 'AI Assistant'), path: '/chat', icon: Bot },
+        { name: t('navigation.emergency', 'Emergency'), path: '/emergency', icon: ShieldAlert },
+        { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
+        { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
       ]}
     ],
     doctor: [
       { label: 'Doctor Workspace', items: [
-        { name: 'Dashboard', path: '/doctor', icon: LayoutDashboard },
-        { name: 'Today Appointments', path: '/appointments', icon: Calendar },
+        { name: t('navigation.dashboard', 'Dashboard'), path: '/doctor', icon: LayoutDashboard },
+        { name: t('navigation.appointments', 'My Appointments'), path: '/appointments', icon: Calendar },
         { name: 'Patient List', path: '/doctors', icon: UsersRound },
-        { name: 'Medical Records', path: '/reports', icon: FileText },
-        { name: 'Digital Prescription', path: '/prescriptions', icon: Pill },
-        { name: 'AI Assistant', path: '/chat', icon: Bot },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Profile', path: '/profile', icon: User },
+        { name: t('navigation.reports', 'Medical Reports'), path: '/reports', icon: FileText },
+        { name: t('navigation.prescriptions', 'Digital Prescription'), path: '/prescriptions', icon: Pill },
+        { name: t('navigation.aiAssistant', 'AI Assistant'), path: '/chat', icon: Bot },
+        { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
+        { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
       ]}
     ],
     trainee: [
       { label: 'Trainee Workspace', items: [
-        { name: 'Dashboard', path: '/trainee', icon: LayoutDashboard },
+        { name: t('navigation.dashboard', 'Dashboard'), path: '/trainee', icon: LayoutDashboard },
         { name: 'Attendance', path: '/attendance', icon: ClipboardCheck },
-        { name: 'Schedule', path: '/appointments', icon: Calendar },
-        { name: 'Hospital Map', path: '/hospital-map', icon: Navigation },
+        { name: t('navigation.appointments', 'My Appointments'), path: '/appointments', icon: Calendar },
+        { name: t('navigation.hospitalNavigation', 'Hospital Navigation'), path: '/hospital-map', icon: Navigation },
         { name: 'Help Center', path: '/help-center', icon: Headset },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Profile', path: '/profile', icon: User },
+        { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
+        { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
       ]}
     ],
     hr: [
       { label: 'HR Workspace', items: [
-        { name: 'Dashboard', path: '/hr', icon: LayoutDashboard },
+        { name: t('navigation.dashboard', 'Dashboard'), path: '/hr', icon: LayoutDashboard },
         { name: 'Manage Trainees', path: '/attendance', icon: GraduationCap },
-        { name: 'Schedules', path: '/appointments', icon: Calendar },
+        { name: t('navigation.appointments', 'My Appointments'), path: '/appointments', icon: Calendar },
         { name: 'Attendance Reports', path: '/vitals', icon: ClipboardCheck },
         { name: 'Help Center', path: '/help-center', icon: Headset },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Profile', path: '/profile', icon: User },
+        { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
+        { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
       ]}
     ],
     admin: [
       { label: 'Admin Workspace', items: [
-        { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+        { name: t('navigation.dashboard', 'Dashboard'), path: '/admin', icon: LayoutDashboard },
         { name: 'Hospital Analytics', path: '/admin', icon: BarChart3 },
         { name: 'Users', path: '/doctors', icon: UsersRound },
         { name: 'Help Center', path: '/help-center', icon: Headset },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Profile', path: '/profile', icon: User },
+        { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
+        { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
       ]}
     ],
   };
@@ -185,7 +187,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 transition-all duration-200 group"
           >
             <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-            <span>Sign Out</span>
+            <span>{t('navigation.signOut', 'Sign Out')}</span>
           </button>
         </div>
       </aside>

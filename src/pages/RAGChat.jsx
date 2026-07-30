@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { getFallbackAssistantReply } from '../utils/chatResponses';
 
 const SUGGESTED_PROMPTS = [
   "Explain my latest blood test results",
@@ -40,13 +41,14 @@ export default function RAGChat() {
 
     try {
       const res = await chatApi.send(null, text);
-      const botMsg = { id: Date.now() + 1, role: 'assistant', text: res.data.content };
+      const botText = res?.data?.content || res?.message || getFallbackAssistantReply(text);
+      const botMsg = { id: Date.now() + 1, role: 'assistant', text: botText };
       setMessages(prev => [...prev, botMsg]);
     } catch (err) {
       setMessages(prev => [...prev, { 
         id: Date.now() + 1, 
-        role: 'system', 
-        text: 'Sorry, I encountered an error connecting to the health database. Please try again.' 
+        role: 'assistant', 
+        text: getFallbackAssistantReply(text)
       }]);
     } finally {
       setLoading(false);
