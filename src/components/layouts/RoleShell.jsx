@@ -12,6 +12,20 @@ export default function RoleShell() {
   const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const onboarding = useOnboarding();
+  const { language } = useLanguage();
+
+  // Start onboarding automatically if user has not completed onboarding for their role
+  React.useEffect(() => {
+    try {
+      const completed = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${user?.role}`) === 'true';
+      if (!completed && onboarding && !onboarding.active && user?.role) {
+        onboarding.start({ role: user.role, language: language });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [user?.role, onboarding, language]);
 
   if (loading) {
     return (
@@ -28,20 +42,6 @@ export default function RoleShell() {
     return <Navigate to="/welcome" replace />;
   }
 
-  const onboarding = useOnboarding();
-  const { language } = useLanguage();
-
-  // Start onboarding automatically if user has not completed onboarding for their role
-  React.useEffect(() => {
-    try {
-      const completed = window.localStorage.getItem(`smartcare-onboarding-complete:${user.role}`) === 'true';
-      if (!completed && !onboarding.active) {
-        onboarding.start({ role: user.role, language: language });
-      }
-    } catch (e) {
-      // ignore
-    }
-  }, [user?.role, onboarding, language]);
 
   return (
     <div className="min-h-screen bg-surface flex overflow-hidden">
