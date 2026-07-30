@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { helpCenterApi } from '../services/api';
 import { Headset, Search, ArrowRight } from 'lucide-react';
@@ -18,6 +18,7 @@ const DEFAULT_CONTEXT = [
 
 function HelpCenter() {
   const { user } = useAuth();
+  const location = useLocation();
   const [question, setQuestion] = useState('');
   const [language, setLanguage] = useState('auto');
   const [history, setHistory] = useState([]);
@@ -51,6 +52,16 @@ function HelpCenter() {
       setLoading(false);
     }
   };
+
+  const callHelpAgent = () => {
+    askQuestion('Hello, I need help with hospital services and how to use the app.');
+  };
+
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('call') === '1') {
+      callHelpAgent();
+    }
+  }, [location.search]);
 
   return (
     <div className="space-y-6 pb-12">
@@ -161,6 +172,21 @@ function HelpCenter() {
           <div className="rounded-3xl border border-slate-200 bg-brand-50 p-4 mt-4">
             <p className="text-sm font-semibold text-brand-900">Need a narrated video guide?</p>
             <p className="text-sm text-brand-700 mt-2">Use the premium AI virtual presenter for an interactive narrated walkthrough in English, Hindi, or Marathi.</p>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-4 mt-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Call the AI Help Agent</p>
+                <p className="text-sm text-slate-500 mt-2">Get instant answers for hospital services, navigation, appointments, and app usage in plain language.</p>
+              </div>
+              <button
+                onClick={callHelpAgent}
+                className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 transition"
+              >
+                Call Agent
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-4">

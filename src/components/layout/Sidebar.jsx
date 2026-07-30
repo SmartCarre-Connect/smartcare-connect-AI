@@ -33,6 +33,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: t('navigation.prescriptions', 'Digital Prescription'), path: '/prescriptions', icon: Pill },
         { name: t('navigation.hospitalNavigation', 'Hospital Navigation'), path: '/hospital-map', icon: Navigation },
         { name: t('navigation.aiAssistant', 'AI Assistant'), path: '/chat', icon: Bot },
+        { name: 'Call AI Help Agent', path: '/help-center?call=1', icon: Headset },
         { name: t('navigation.emergency', 'Emergency'), path: '/emergency', icon: ShieldAlert },
         { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
         { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
@@ -46,6 +47,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: t('navigation.reports', 'Medical Reports'), path: '/reports', icon: FileText },
         { name: t('navigation.prescriptions', 'Digital Prescription'), path: '/prescriptions', icon: Pill },
         { name: t('navigation.aiAssistant', 'AI Assistant'), path: '/chat', icon: Bot },
+        { name: 'Call AI Help Agent', path: '/help-center?call=1', icon: Headset },
         { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
         { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },
       ]}
@@ -77,6 +79,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { name: t('navigation.dashboard', 'Dashboard'), path: '/admin', icon: LayoutDashboard },
         { name: 'Hospital Analytics', path: '/admin', icon: BarChart3 },
         { name: 'Users', path: '/doctors', icon: UsersRound },
+        { name: 'Call AI Help Agent', path: '/help-center?call=1', icon: Headset },
         { name: 'Help Center', path: '/help-center', icon: Headset },
         { name: t('navigation.notifications', 'Notifications'), path: '/notifications', icon: Bell },
         { name: t('navigation.profile', 'Profile'), path: '/profile', icon: User },

@@ -74,9 +74,10 @@ export default function Login() {
       setError('');
       const user = await login(data.email, data.password);
       const resolvedRole = user?.role || selectedRole;
-      const onboardingCompleted = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${resolvedRole}`) === 'true';
-      const nextPath = onboardingCompleted ? roleHome(resolvedRole) : `/presenter?role=${resolvedRole}`;
-      navigate(nextPath);
+      // Always navigate into the app shell after login. The RoleShell auto-starts the
+      // in-app onboarding overlay for first-time users, so we no longer redirect to
+      // a separate presenter page on login.
+      navigate(roleHome(resolvedRole));
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password');
     }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useOnboarding } from './OnboardingContext';
 import AvatarProviderPlaceholder from './AvatarProviderPlaceholder';
+import AvatarProviderHeygen from './AvatarProviderHeygen';
 import HighlightOverlay from './HighlightOverlay';
 import { Play, Pause, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -20,7 +21,8 @@ export default function OnboardingUI() {
       <div className="fixed bottom-6 left-6 z-50">
         <div className="w-64 rounded-2xl bg-white/95 border border-slate-200 p-3 shadow-xl">
           <div className="flex items-start gap-3">
-            <AvatarProviderPlaceholder language={onboarding.language} voice="female" speaking={true} script={current.script} />
+            {/* Prefer HeyGen provider when a role-level tour has been generated; fallback to placeholder */}
+            <AvatarProviderHeygen role={onboarding.role || 'patient'} language={onboarding.language} sectionId={current.id} script={current.script} avatarId={'Daphne_public_1'} />
           </div>
           <div className="mt-3 flex items-center gap-2">
             <button onClick={onboarding.prev} className="rounded-lg p-2 bg-slate-50"><ChevronLeft className="w-4 h-4" /></button>

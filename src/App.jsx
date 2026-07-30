@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { OnboardingProvider } from './onboarding/OnboardingContext';
 import RoleShell from './components/layouts/RoleShell';
+import { roleHome } from './utils/rbac';
 import RoleRoute from './routes/RoleRoute';
 
 import WelcomePage from './pages/WelcomePage';
@@ -53,8 +54,11 @@ function InitialRouteRedirect() {
     return null;
   }
 
-  if (user && !onboardingCompleted) {
-    return <Navigate to={`/presenter?role=${role}`} replace />;
+  if (user) {
+    // User is authenticated — take them to their role home (RoleShell will automatically
+    // start the in-app onboarding overlay on first login). This prevents navigating to
+    // a separate `/presenter` page for first-time onboarding.
+    return <Navigate to={roleHome(role)} replace />;
   }
 
   const target = languageSelected ? '/splash' : '/language-selection';
@@ -77,7 +81,7 @@ export function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/role-selection" element={<RoleSelectionPage />} />
               <Route path="/presenter" element={<AIVirtualPresenter />} />
-              <Route path="/presenter-manager" element={<PresentationManager />} />
+              <Route path="/presenter-manager" element={<RoleRoute allowedRoles={["admin"]}><PresentationManager /></RoleRoute>} />
 
             <Route element={<RoleShell />}>
               <Route index element={<Dashboard />} />

@@ -70,6 +70,9 @@ from app.api.v1.general.routes import router as general_router
 from app.api.v1.training.routes import router as training_router
 from app.api.v1.settings.routes import router as settings_router
 from app.api.v1.hr.routes import router as vitals_router
+from app.api.v1.heygen.routes import router as heygen_router
+from app.api.v1.tts.routes import router as tts_router
+from app.api.v1.media.routes import router as media_router
 
 API_PREFIX = "/api/v1"
 
@@ -89,6 +92,9 @@ app.include_router(general_router, prefix=API_PREFIX)
 app.include_router(training_router, prefix=API_PREFIX)
 app.include_router(settings_router, prefix=API_PREFIX)
 app.include_router(vitals_router, prefix=API_PREFIX)
+app.include_router(heygen_router, prefix=API_PREFIX)
+app.include_router(tts_router, prefix=API_PREFIX)
+app.include_router(media_router, prefix=API_PREFIX)
 
 
 # Root endpoint

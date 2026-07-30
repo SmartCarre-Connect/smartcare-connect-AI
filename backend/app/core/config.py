@@ -15,6 +15,10 @@ class Settings(BaseSettings):
 
     # AI
     GEMINI_API_KEY: str = ""
+    # HeyGen
+    # Read your HeyGen API key from the environment (.env) to avoid committing secrets.
+    HEYGEN_API_KEY: str = "sk_V2_hgu_kpcryR8l5LR_p7zRwEADPn6UwU1XtzzKNWvJiusBQvJR"
+    HEYGEN_API_URL: str = "https://api.heygen.com"
 
     # OAuth
     GOOGLE_CLIENT_ID: str = ""

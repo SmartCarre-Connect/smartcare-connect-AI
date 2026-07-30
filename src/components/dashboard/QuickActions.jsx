@@ -9,6 +9,7 @@ export const QuickActions = () => {
     { title: 'Scan Prescription', desc: 'Extract dosage & reminders', path: '/prescriptions', icon: Pill, color: 'from-medical-500 to-medical-700' },
     { title: 'Upload Radiology', desc: 'Chest X-Ray, CT, Ultrasound', path: '/medical-images', icon: ImageIcon, color: 'from-purple-500 to-purple-700' },
     { title: 'Ask RAG AI Chat', desc: 'Contextual report QA chatbot', path: '/chat', icon: Bot, color: 'from-cyan-500 to-cyan-700' },
+    { title: 'Call AI Help Agent', desc: 'Hospital support and app guidance', path: '/help-center?call=1', icon: Headset, color: 'from-slate-500 to-slate-700' },
     { title: 'Help Center', desc: 'Get app and hospital support', path: '/help-center', icon: Headset, color: 'from-slate-500 to-slate-700' },
     { title: 'Emergency Profile', desc: 'Instant QR code medical card', path: '/emergency', icon: ShieldAlert, color: 'from-rose-500 to-rose-700' },
     { title: 'Doctor Visit Sheet', desc: 'Printable prep copilot PDF', path: '/doctor-copilot', icon: Sparkles, color: 'from-amber-500 to-amber-700' },

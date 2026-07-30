@@ -226,6 +226,42 @@ Respond helpfully and concisely as SmartCare AI:"""
     )
 
 
+@router.post("/help-center")
+async def help_center(data: ChatMessageCreate, current_user: dict = Depends(get_current_user)):
+    db = get_database()
+    patient = await db.patients.find_one({"user_id": ObjectId(current_user["_id"])})
+
+    patient_context = ""
+    if patient:
+        patient_context = f"""
+Patient Profile:
+- Blood Group: {patient.get('blood_group', 'Unknown')}
+- Allergies: {', '.join(patient.get('allergies', [])) or 'None'}
+- Chronic Diseases: {', '.join(patient.get('chronic_diseases', [])) or 'None'}
+"""
+
+    prompt = f"""You are SmartCare Connect AI Help Agent.
+You answer hospital questions, facility guidance, appointment help, medical record questions, emergency support, and how to use the SmartCare Connect app.
+Be concise, friendly, and practical.
+If the user asks about an emergency, tell them to contact hospital staff or emergency services immediately.
+
+{patient_context}
+User Question: {data.message}
+
+Answer clearly for the hospital visitor and app user.
+"""
+
+    try:
+        model = get_gemini_model()
+        response = model.generate_content(prompt)
+        ai_message = response.text.strip()
+    except Exception as e:
+        logger.error(f"Help Center AI error: {e}")
+        ai_message = "I'm sorry, I can't answer that right now. Please try again or contact hospital support."
+
+    return success_response(data={"answer": ai_message}, message="Help answer generated")
+
+
 @router.get("/chat/sessions")
 async def get_chat_sessions(current_user: dict = Depends(get_current_user)):
     db = get_database()

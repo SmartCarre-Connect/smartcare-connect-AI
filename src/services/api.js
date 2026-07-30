@@ -111,6 +111,13 @@ export const adminApi = {
   getStats: () => api.get('/dashboard/stats'),
 };
 
+export const mediaApi = {
+  create: (data) => api.post('/media', data),
+  list: (role = null) => api.get('/media', { params: role ? { role } : undefined }),
+  publish: (data) => api.post('/media/publish', data),
+  migrate: (payload) => api.post('/media/migrate', payload),
+};
+
 // ===== NEW APIs =====
 
 export const appointmentsApi = {
