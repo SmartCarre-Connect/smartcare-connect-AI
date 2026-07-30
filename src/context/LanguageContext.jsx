@@ -38,7 +38,7 @@ export const LanguageProvider = ({ children }) => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const currentOption = languageOptions.find((option) => option.code === language) || languageOptions[0];
-    window.localStorage.setItem('selected_language', currentOption.label);
+    window.localStorage.setItem('selected_language', currentOption.code);
     document.documentElement.lang = currentOption.code;
   }, [language]);
 
@@ -46,7 +46,7 @@ export const LanguageProvider = ({ children }) => {
     const next = normalizeLanguage(value);
     setLanguageState(next.code);
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('selected_language', next.label);
+      window.localStorage.setItem('selected_language', next.code);
     }
   };
 
