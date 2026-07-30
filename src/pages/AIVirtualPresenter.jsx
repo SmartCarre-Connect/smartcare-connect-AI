@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -181,6 +181,8 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
 
   const onboarding = useOnboarding();
   const { syncToStep } = useScreenSync();
+  const onboardingSyncing = useRef(false);
+  const prevOnboardingStepIndexRef = useRef(null);
 
   const sections = useMemo(() => {
     // if onboarding has active published steps for the role, prefer those
@@ -228,33 +230,57 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
     for (let index = 0; index < sections.length; index += 1) {
       const section = sections[index];
       if (normalizedPlaybackTime < currentTime + Number(section.duration ?? 8)) {
-        setActiveIndex(index);
+        if (activeIndex !== index) setActiveIndex(index);
         return;
       }
       currentTime += Number(section.duration ?? 8);
     }
-    setActiveIndex(Math.max(0, sections.length - 1));
-  }, [normalizedPlaybackTime, sections]);
+    const finalIndex = Math.max(0, sections.length - 1);
+    if (activeIndex !== finalIndex) setActiveIndex(finalIndex);
+  }, [activeIndex, normalizedPlaybackTime, sections]);
 
   // Sync onboarding currentStepIndex -> presenter playback
   useEffect(() => {
     if (!onboarding || !onboarding.active) return;
     const idx = onboarding.currentStepIndex ?? 0;
-    if (typeof idx === 'number' && idx >= 0 && idx < sections.length) {
-      // compute playbackTime to align with idx
-      let time = 0;
-      for (let i = 0; i < idx; i += 1) time += sections[i]?.duration || 0;
-      setPlaybackTime(time);
-      setActiveIndex(idx);
-      setIsPlaying(true);
+    if (typeof idx !== 'number' || idx < 0 || idx >= sections.length) return;
+
+    const startTime = sections.slice(0, idx).reduce((sum, section) => sum + (Number(section.duration) || 0), 0);
+    const sectionDuration = Number(sections[idx]?.duration || 0);
+    const isAligned = activeIndex === idx && playbackTime >= startTime && playbackTime < startTime + sectionDuration;
+
+    if (isAligned) {
+      prevOnboardingStepIndexRef.current = idx;
+      onboardingSyncing.current = false;
+      return;
     }
-  }, [onboarding?.currentStepIndex, onboarding?.active, sections]);
+
+    const previousStep = prevOnboardingStepIndexRef.current;
+    if (previousStep === idx && !onboardingSyncing.current) return;
+
+    onboardingSyncing.current = true;
+    prevOnboardingStepIndexRef.current = idx;
+    setPlaybackTime(startTime);
+    setActiveIndex(idx);
+    setIsPlaying(true);
+  }, [onboarding?.currentStepIndex, onboarding?.active, sections, activeIndex, playbackTime]);
 
   useEffect(() => {
     if (!onboarding?.active && sections.length > 0) {
       onboarding?.start?.({ role: roleKey, language });
     }
   }, [onboarding, roleKey, language, sections.length]);
+
+  useEffect(() => {
+    if (!onboarding) return;
+    if (!onboarding.active) return;
+    if (onboardingSyncing.current) {
+      onboardingSyncing.current = false;
+      return;
+    }
+    if (typeof onboarding.currentStepIndex === 'number' && onboarding.currentStepIndex === activeIndex) return;
+    try { onboarding.goto(activeIndex); } catch (e) {}
+  }, [activeIndex, onboarding]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isPlaying || !activeSection) return;
@@ -296,6 +322,10 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
   useEffect(() => {
     if (!onboarding) return;
     if (!onboarding.active) return;
+    if (onboardingSyncing.current) {
+      onboardingSyncing.current = false;
+      return;
+    }
     if (typeof onboarding.currentStepIndex === 'number' && onboarding.currentStepIndex === activeIndex) return;
     try { onboarding.goto(activeIndex); } catch (e) {}
   }, [activeIndex, onboarding]);
