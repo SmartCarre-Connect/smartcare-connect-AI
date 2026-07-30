@@ -63,6 +63,8 @@ from app.api.v1.reports.routes import router as reports_router
 from app.api.v1.ai.routes import router as ai_router
 from app.api.v1.notifications.routes import router as notifications_router
 from app.api.v1.medicine.routes import router as medicine_router
+from app.api.v1.prescriptions.routes import router as prescriptions_router
+from app.api.v1.medical_images.routes import router as medical_images_router
 from app.api.v1.dashboard.routes import router as dashboard_router
 from app.api.v1.general.routes import router as general_router
 from app.api.v1.training.routes import router as training_router
@@ -80,6 +82,8 @@ app.include_router(reports_router, prefix=API_PREFIX)
 app.include_router(ai_router, prefix=API_PREFIX)
 app.include_router(notifications_router, prefix=API_PREFIX)
 app.include_router(medicine_router, prefix=API_PREFIX)
+app.include_router(prescriptions_router, prefix=API_PREFIX)
+app.include_router(medical_images_router, prefix=API_PREFIX)
 app.include_router(dashboard_router, prefix=API_PREFIX)
 app.include_router(general_router, prefix=API_PREFIX)
 app.include_router(training_router, prefix=API_PREFIX)

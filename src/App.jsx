@@ -1,6 +1,6 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { OnboardingProvider } from './onboarding/OnboardingContext';
@@ -14,11 +14,6 @@ import RoleSelectionPage from './pages/RoleSelectionPage';
 import LanguageSelectionPage from './pages/LanguageSelectionPage';
 import SplashScreen from './pages/SplashScreen';
 import Dashboard from './pages/Dashboard';
-
-function InitialRouteRedirect() {
-  const target = typeof window !== 'undefined' && window.localStorage.getItem('selected_language') ? '/splash' : '/language-selection';
-  return <Navigate to={target} replace />;
-}
 import MedicalReports from './pages/MedicalReports';
 import RAGChat from './pages/RAGChat';
 import Prescriptions from './pages/Prescriptions';
@@ -47,6 +42,24 @@ import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
 import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
 import HrDashboard from './pages/roleDashboards/HrDashboard';
 import AdminDashboardPage from './pages/roleDashboards/AdminDashboard';
+
+function InitialRouteRedirect() {
+  const { user, selectedRole, loading } = useAuth();
+  const languageSelected = typeof window !== 'undefined' && window.localStorage.getItem('selected_language');
+  const role = user?.role || selectedRole || (typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_selected_role')) || 'patient';
+  const onboardingCompleted = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${role}`) === 'true';
+
+  if (loading) {
+    return null;
+  }
+
+  if (user && !onboardingCompleted) {
+    return <Navigate to={`/presenter?role=${role}`} replace />;
+  }
+
+  const target = languageSelected ? '/splash' : '/language-selection';
+  return <Navigate to={target} replace />;
+}
 
 export function App() {
   return (
