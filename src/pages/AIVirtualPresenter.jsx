@@ -505,6 +505,8 @@ export default function AIVirtualPresenter({ embedded = false, roleOverride = nu
               {t('presenter.fullscreen', 'Fullscreen')}
             </button>
           </div>
+        </>
+      )}
         </Card>
 
         <div className="space-y-6">
