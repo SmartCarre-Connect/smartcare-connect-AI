@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AIVirtualPresenter from './AIVirtualPresenter';
 import { LanguageProvider } from '../context/LanguageContext';
+import { AuthProvider } from '../context/AuthContext';
 
 describe('AIVirtualPresenter', () => {
   beforeEach(() => {
@@ -20,9 +21,11 @@ describe('AIVirtualPresenter', () => {
   it('renders a numeric total duration instead of NaN', () => {
     render(
       <MemoryRouter>
-        <LanguageProvider>
-          <AIVirtualPresenter />
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <AIVirtualPresenter />
+          </LanguageProvider>
+        </AuthProvider>
       </MemoryRouter>
     );
 

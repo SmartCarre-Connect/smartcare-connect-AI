@@ -14,9 +14,19 @@ export default function MedicalReports() {
   const fetchReports = async () => {
     try {
       const res = await reportsApi.list();
-      setReports(res.data);
+      const payload = Array.isArray(res.data) ? res.data : res.data?.reports || [];
+      setReports(payload.map((report) => ({
+        ...report,
+        id: report.id || report._id,
+        title: report.title || report.original_filename || report.filename || 'Medical Report',
+        filename: report.filename || report.original_filename || 'report',
+        category: report.category || report.report_type || 'General Report',
+        upload_date: report.upload_date || report.report_date || report.created_at || new Date().toISOString(),
+        file_url: report.file_url || report.fileUrl || '#',
+      })));
     } catch (err) {
       console.error(err);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -145,7 +155,7 @@ export default function MedicalReports() {
                       {report.title || report.filename}
                     </h3>
                     <p className="text-xs font-semibold text-slate-500">
-                      {report.category || 'General Report'} • {new Date(report.upload_date).toLocaleDateString()}
+                      {report.category || 'General Report'} • {new Date(report.upload_date || report.created_at || Date.now()).toLocaleDateString()}
                     </p>
                   </div>
 

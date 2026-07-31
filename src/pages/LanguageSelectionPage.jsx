@@ -3,18 +3,12 @@ import { ArrowRight, Sparkles, Globe2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 
-const languageCards = [
-  { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇺🇸', greeting: 'Hello' },
-  { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳', greeting: 'नमस्ते' },
-  { code: 'mr', label: 'Marathi', nativeLabel: 'मराठी', flag: '🇮🇳', greeting: 'नमस्कार' },
-];
-
 export default function LanguageSelectionPage() {
   const navigate = useNavigate();
-  const { language, setLanguage, currentLanguage } = useLanguage();
+  const { language, setLanguage, currentLanguage, languageOptions, t } = useLanguage();
 
   const handleContinue = () => {
-    navigate('/intro-video', { replace: true });
+    navigate('/role-selection', { replace: true });
   };
 
   return (
@@ -28,14 +22,14 @@ export default function LanguageSelectionPage() {
         <div className="rounded-[32px] border border-slate-200/70 bg-white/80 p-6 shadow-glass backdrop-blur-xl sm:p-8 lg:p-10">
           <div className="flex items-center gap-3 text-sm font-semibold text-brand-600">
             <Sparkles className="h-4 w-4" />
-            <span>SmartCare Connect</span>
+            <span>{t('app.brand', 'AI Powered Smart Hospital Operating System')}</span>
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Welcome to SmartCare Connect</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">Choose your preferred language</p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{t('app.title', 'Welcome to SmartCare Connect')}</h1>
+          <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">{t('app.subtitle', 'Choose your preferred language')}</p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          {languageCards.map((item, index) => {
+          {languageOptions.map((item, index) => {
             const active = language === item.code;
             return (
               <motion.button
@@ -95,15 +89,15 @@ export default function LanguageSelectionPage() {
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Selected language</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{t('languageSelection.selectedLabel', 'Selected language')}</p>
               <p className="mt-2 text-2xl font-bold text-slate-900">{currentLanguage.nativeLabel}</p>
-              <p className="mt-1 text-sm text-slate-600">Your preference will be saved and used on future launches.</p>
+              <p className="mt-1 text-sm text-slate-600">{t('languageSelection.selectedHint', 'Your preference will be saved and used on future launches.')}</p>
             </div>
             <button
               onClick={handleContinue}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-90"
             >
-              Continue
+              {t('common.continue', 'Continue')}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

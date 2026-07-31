@@ -14,6 +14,7 @@ import { HelpCenter } from './components/HelpCenter';
 import { Settings } from './components/Settings';
 import { DoctorWorkspace, HrWorkspace, TraineeWorkspace } from './components/RoleDashboards';
 import { AiCallingAgent } from './components/AiCallingAgent';
+import { EnterpriseHealthcareHub } from './components/EnterpriseHealthcareHub';
 import {
   FileText,
   Stethoscope,
@@ -39,7 +40,8 @@ export function App() {
   const [showAiCallAgent, setShowAiCallAgent] = useState(false);
 
   // Step 2: Dashboard Active Tab State
-  const [activeTab, setActiveTab] = useState<'opd' | 'doctors' | 'pharmacy' | 'workspace' | 'help' | 'settings'>('opd');
+  const [activeTab, setActiveTab] = useState<'opd' | 'doctors' | 'pharmacy' | 'workspace' | 'help' | 'settings' | 'hub'>('opd');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
 
   // Load persisted user & language preferences from localStorage if available
   useEffect(() => {
@@ -67,6 +69,11 @@ export function App() {
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
+  };
+
+  const handleDoctorBooking = (doctorId: string) => {
+    setSelectedDoctorId(doctorId);
+    setActiveTab('opd');
   };
 
   const handleLoginSuccess = (user: UserProfile) => {
@@ -235,6 +242,19 @@ export function App() {
 
           <button
             type="button"
+            onClick={() => setActiveTab('hub')}
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'hub'
+                ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span>Care Hub</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('help')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'help'
@@ -265,13 +285,14 @@ export function App() {
           <OpdRegistration
             currentLanguage={currentLang}
             currentUser={currentUser}
+            initialSelectedDoctorId={selectedDoctorId || undefined}
           />
         )}
 
         {activeTab === 'doctors' && (
           <DoctorAvailability
             currentLanguage={currentLang}
-            onBookDoctor={() => setActiveTab('opd')}
+            onBookDoctor={handleDoctorBooking}
           />
         )}
 
@@ -293,17 +314,24 @@ export function App() {
               <TraineeWorkspace currentLanguage={currentLang} currentUser={currentUser} />
             )}
             {currentUser.role === 'patient' && (
-              <OpdRegistration currentLanguage={currentLang} currentUser={currentUser} />
+              <OpdRegistration
+                currentLanguage={currentLang}
+                currentUser={currentUser}
+                initialSelectedDoctorId={selectedDoctorId || undefined}
+              />
             )}
           </>
+        )}
+
+        {activeTab === 'hub' && (
+          <EnterpriseHealthcareHub currentLanguage={currentLang} />
         )}
 
         {activeTab === 'help' && (
           <HelpCenter
             currentLanguage={currentLang}
-            currentUser={currentUser}
-            onOpenWalkthrough={() => setShowWalkthrough(true)}
             onOpenAiCallAgent={() => setShowAiCallAgent(true)}
+            onOpenAiGuide={() => setShowWalkthrough(true)}
           />
         )}
 

@@ -1,4 +1,4 @@
-import { DoctorSchedule, MedicineItem, WalkthroughStep } from '../types';
+import { AnnouncementItem, DoctorSchedule, FamilyMember, MedicineItem, NavigationDestination, WalkthroughStep } from '../types';
 
 export const mockDoctors: DoctorSchedule[] = [
   {
@@ -15,6 +15,12 @@ export const mockDoctors: DoctorSchedule[] = [
     totalTokens: 35,
     avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&auto=format&fit=crop&q=80',
     languagesSpoken: ['Marathi', 'Hindi', 'English'],
+    weeklySchedule: ['Mon: 09:00-14:00', 'Tue: 09:00-14:00', 'Wed: 09:00-14:00', 'Thu: 09:00-14:00', 'Fri: 09:00-14:00'],
+    nextAvailableSlot: 'Today • 11:30 AM',
+    rating: 4.9,
+    reviewCount: 182,
+    reviewSummary: 'Compassionate and highly rated for cardiac care',
+    department: 'Cardiology',
   },
   {
     id: 'doc-2',
@@ -30,6 +36,12 @@ export const mockDoctors: DoctorSchedule[] = [
     totalTokens: 25,
     avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&auto=format&fit=crop&q=80',
     languagesSpoken: ['Hindi', 'English'],
+    weeklySchedule: ['Mon: 10:00-16:00', 'Tue: 10:00-16:00', 'Wed: 10:00-16:00', 'Thu: 10:00-16:00', 'Fri: 10:00-16:00'],
+    nextAvailableSlot: 'Today • 01:30 PM',
+    rating: 4.8,
+    reviewCount: 147,
+    reviewSummary: 'Excellent joint replacement and orthopedic recovery advice',
+    department: 'Orthopedics',
   },
   {
     id: 'doc-3',
@@ -45,6 +57,12 @@ export const mockDoctors: DoctorSchedule[] = [
     totalTokens: 40,
     avatarUrl: 'https://images.unsplash.com/photo-1594824813566-88855ce78946?w=300&auto=format&fit=crop&q=80',
     languagesSpoken: ['Marathi', 'Hindi', 'English'],
+    weeklySchedule: ['Mon: 09:30-14:00', 'Tue: 09:30-14:00', 'Wed: 09:30-14:00', 'Thu: 09:30-14:00', 'Fri: 09:30-14:00'],
+    nextAvailableSlot: 'Today • 04:45 PM',
+    rating: 4.7,
+    reviewCount: 126,
+    reviewSummary: 'Gentle pediatric care and parent-friendly consultations',
+    department: 'Pediatrics',
   },
   {
     id: 'doc-4',
@@ -60,6 +78,12 @@ export const mockDoctors: DoctorSchedule[] = [
     totalTokens: 50,
     avatarUrl: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=300&auto=format&fit=crop&q=80',
     languagesSpoken: ['Marathi', 'Hindi', 'English'],
+    weeklySchedule: ['Mon: 08:00-14:00', 'Tue: 08:00-14:00', 'Wed: 08:00-14:00', 'Thu: 08:00-14:00', 'Fri: 08:00-14:00'],
+    nextAvailableSlot: 'Today • 08:30 AM',
+    rating: 4.6,
+    reviewCount: 111,
+    reviewSummary: 'Trusted for diabetes and preventive medicine screening',
+    department: 'General Medicine',
   },
   {
     id: 'doc-5',
@@ -75,6 +99,12 @@ export const mockDoctors: DoctorSchedule[] = [
     totalTokens: 20,
     avatarUrl: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=300&auto=format&fit=crop&q=80',
     languagesSpoken: ['Marathi', 'Hindi', 'English'],
+    weeklySchedule: ['Mon: 10:00-15:00', 'Tue: 10:00-15:00', 'Wed: 10:00-15:00', 'Thu: 10:00-15:00', 'Fri: 10:00-15:00'],
+    nextAvailableSlot: 'Today • 02:15 PM',
+    rating: 4.9,
+    reviewCount: 159,
+    reviewSummary: 'Excellent maternity and gynecology support',
+    department: 'Gynecology',
   },
   {
     id: 'doc-6',
@@ -90,6 +120,12 @@ export const mockDoctors: DoctorSchedule[] = [
     totalTokens: 0,
     avatarUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&auto=format&fit=crop&q=80',
     languagesSpoken: ['Hindi', 'English'],
+    weeklySchedule: ['Mon: 14:00-18:00', 'Tue: 14:00-18:00', 'Wed: 14:00-18:00', 'Thu: 14:00-18:00', 'Fri: 14:00-18:00'],
+    nextAvailableSlot: 'Tomorrow • 03:00 PM',
+    rating: 4.8,
+    reviewCount: 98,
+    reviewSummary: 'Renowned neuro specialist with calm bedside manner',
+    department: 'Neurology',
   }
 ];
 
@@ -106,6 +142,10 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Tablet (Strip of 15)',
     manufacturer: 'Micro Labs Ltd',
     substitutes: ['Calpol 650', 'Crocin 650', 'Pacimol 650'],
+    description: 'Trusted pain relief and fever reducer used for routine fever and mild pain support.',
+    dosage: '1 tablet every 6 hours or as directed by doctor.',
+    nearbyPharmacy: 'Main Pharmacy • Counter 3',
+    hospitalPharmacyStock: '450 units in hospital pharmacy stock',
   },
   {
     id: 'med-2',
@@ -119,6 +159,10 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Tablet (Strip of 10)',
     manufacturer: 'GlaxoSmithKline',
     substitutes: ['Moxikind-CV 625', 'Clavam 625', 'Amoxyclav 625'],
+    description: 'Broad-spectrum antibiotic for bacterial infection management and recovery support.',
+    dosage: 'Take 1 tablet twice daily for 5-7 days under medical guidance.',
+    nearbyPharmacy: 'Antibiotics Wing • Counter 4',
+    hospitalPharmacyStock: '120 units in hospital pharmacy stock',
   },
   {
     id: 'med-3',
@@ -132,6 +176,10 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Tablet (Strip of 10)',
     manufacturer: 'USV Ltd',
     substitutes: ['Gluconorm SR 500', 'Metfor 500'],
+    description: 'Long-standing diabetes medication used to support blood sugar control.',
+    dosage: 'Take once daily with food as prescribed.',
+    nearbyPharmacy: 'Chronic Care Pharmacy • Counter 2',
+    hospitalPharmacyStock: '18 units left - reorder recommended',
   },
   {
     id: 'med-4',
@@ -145,6 +193,10 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Tablet (Strip of 15)',
     manufacturer: 'Sun Pharma',
     substitutes: ['Pan 40', 'Pantodac 40'],
+    description: 'Acid suppression medicine used for reflux, acidity, and gastric discomfort.',
+    dosage: '1 tablet before breakfast or as advised by your doctor.',
+    nearbyPharmacy: 'Main Pharmacy • Counter 3',
+    hospitalPharmacyStock: '320 units in hospital pharmacy stock',
   },
   {
     id: 'med-5',
@@ -158,6 +210,10 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Pre-filled Pen (3ml)',
     manufacturer: 'Sanofi India',
     substitutes: ['Basalog One Pen', 'Glaritus Pen'],
+    description: 'Insulin therapy option for glucose management in diabetic patients.',
+    dosage: 'Inject as prescribed by the treating physician.',
+    nearbyPharmacy: 'Cold Storage • Counter 5',
+    hospitalPharmacyStock: 'Out of stock - urgent refill pending',
   },
   {
     id: 'med-6',
@@ -171,6 +227,10 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Syrup Bottle (100ml)',
     manufacturer: 'Glenmark Pharmaceuticals',
     substitutes: ['Benadryl CR', 'Bro-Zedex LS'],
+    description: 'Cough syrup that helps relieve chest congestion and productive cough symptoms.',
+    dosage: '5 ml twice daily or as recommended by the treating doctor.',
+    nearbyPharmacy: 'Liquid Therapy Wing • Counter 4',
+    hospitalPharmacyStock: '85 units in hospital pharmacy stock',
   },
   {
     id: 'med-7',
@@ -184,7 +244,68 @@ export const mockMedicines: MedicineItem[] = [
     dosageForm: 'Tablet (Strip of 5)',
     manufacturer: 'Alembic Pharmaceuticals',
     substitutes: ['Azee 500', 'Zady 500'],
+    description: 'Commonly used macrolide antibiotic for respiratory and upper respiratory infections.',
+    dosage: '1 tablet daily for 3-5 days as prescribed.',
+    nearbyPharmacy: 'Antibiotics Wing • Counter 4',
+    hospitalPharmacyStock: '15 units left - low stock alert',
   }
+];
+
+export const mockFamilyMembers: FamilyMember[] = [
+  {
+    id: 'fm-1',
+    relation: 'Father',
+    name: 'Vijay Rao',
+    bloodGroup: 'B+',
+    medicalHistory: 'Hypertension, knee arthritis',
+    appointments: ['Cardiology follow-up • 02 Aug'],
+    reports: ['ECG Report'],
+    prescriptions: ['Metformin 500mg'],
+  },
+  {
+    id: 'fm-2',
+    relation: 'Mother',
+    name: 'Sulochana Rao',
+    bloodGroup: 'O+',
+    medicalHistory: 'Diabetes, asthma',
+    appointments: ['Pediatrics review • 04 Aug'],
+    reports: ['Blood Sugar Report'],
+    prescriptions: ['Insulin Pen'],
+  },
+];
+
+export const mockAnnouncements: AnnouncementItem[] = [
+  {
+    id: 'ann-1',
+    title: 'Blood Donation Camp',
+    type: 'Community',
+    message: 'Free blood donation drive on Saturday from 09:00 AM to 02:00 PM.',
+    severity: 'info',
+    date: 'Today',
+  },
+  {
+    id: 'ann-2',
+    title: 'Holiday Notice',
+    type: 'Operations',
+    message: 'OPD services remain active but the cafeteria will be closed on 15 August.',
+    severity: 'warning',
+    date: 'Tomorrow',
+  },
+  {
+    id: 'ann-3',
+    title: 'Emergency Alert',
+    type: 'Critical',
+    message: 'Emergency department is operating at full capacity. Please use the AI assistant for guidance.',
+    severity: 'urgent',
+    date: 'Now',
+  },
+];
+
+export const mockNavigationDestinations: NavigationDestination[] = [
+  { id: 'nav-1', name: 'OPD', floor: 'First Floor', route: 'Reception → Lift A → Corridor 2', time: '4 mins', accessible: true },
+  { id: 'nav-2', name: 'Emergency', floor: 'Ground Floor', route: 'Main Gate → Ramp → Emergency Entrance', time: '2 mins', accessible: true },
+  { id: 'nav-3', name: 'Pharmacy', floor: 'Ground Floor', route: 'Main Atrium → Right Wing → Pharmacy Counter', time: '3 mins', accessible: true },
+  { id: 'nav-4', name: 'Radiology', floor: 'Second Floor', route: 'Lift B → Radiology Wing', time: '6 mins', accessible: false },
 ];
 
 export const walkthroughSteps: WalkthroughStep[] = [

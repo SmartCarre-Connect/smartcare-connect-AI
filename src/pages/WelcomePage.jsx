@@ -44,6 +44,32 @@ export default function WelcomePage() {
             <p className="mt-2 text-sm text-slate-600">{t('welcome.workflowBody', 'Designed to look and behave like a modern hospital management platform.')}</p>
           </div>
         </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <section id="about" className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-glass">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600">About SmartCare</p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">A modern hospital experience for patients and staff</h2>
+            <p className="mt-3 text-sm text-slate-600">
+              SmartCare Connect combines booking, navigation, AI assistance, care reminders, and role-aware dashboards in one guided experience.
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-600">
+              <li>• Fast digital OPD registration and slip generation</li>
+              <li>• Indoor hospital mapping and multilingual guidance</li>
+              <li>• Secure dashboards for patients, doctors, HR, and admins</li>
+            </ul>
+          </section>
+
+          <section id="contact" className="rounded-3xl border border-slate-200 bg-slate-900 p-6 text-slate-100 shadow-glass">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">Contact</p>
+            <h2 className="mt-2 text-xl font-semibold">Need help or want a hospital tour?</h2>
+            <p className="mt-3 text-sm text-slate-300">Call our care support desk or open the AI guide to explore the platform instantly.</p>
+            <div className="mt-4 space-y-2 text-sm">
+              <div>📞 +91 1800-200-9999</div>
+              <div>✉️ support@smartcareconnect.org</div>
+              <div>🕘 Open 24/7 for emergencies and patient support</div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

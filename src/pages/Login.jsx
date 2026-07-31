@@ -12,10 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+
 
 /* ── Animated floating particles ── */
 const Particle = ({ delay, x, y, size, duration }) => (
@@ -58,11 +55,17 @@ const AnimCounter = ({ end, suffix = '', label }) => {
 export default function Login() {
   const navigate = useNavigate();
   const { login, selectedRole, selectRole } = useAuth();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+
+  const loginSchema = z.object({
+    email: z.string().email(t('validation.email', 'Please enter a valid email address')),
+    password: z.string().min(6, t('validation.passwordMin', 'Password must be at least 6 characters')),
+  });
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(loginSchema),
@@ -73,10 +76,9 @@ export default function Login() {
     try {
       setError('');
       await login(data.email, data.password);
-      // After login, direct users to role selection before entering the app.
-      navigate('/role-selection');
+      navigate(roleHome(selectedRole || 'patient'));
     } catch (err) {
-      setError(err.response?.data?.detail || 'Invalid email or password');
+      setError(err.response?.data?.detail || t('login.invalidCredentials', 'Invalid email or password'));
     }
   };
 

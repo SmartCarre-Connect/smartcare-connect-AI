@@ -2,16 +2,35 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { roleHome } from '../utils/rbac';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function SplashScreen() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { t } = useLanguage();
 
   useEffect(() => {
-    const timer = window.setTimeout(() => navigate('/welcome', { replace: true }), 1400);
+    const timer = window.setTimeout(() => {
+      const languageSelected = typeof window !== 'undefined' && !!window.localStorage.getItem('selected_language');
+      const selectedRole = typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_selected_role');
+
+      if (!languageSelected) {
+        navigate('/language-selection', { replace: true });
+        return;
+      }
+
+      if (user) {
+        navigate(roleHome(user.role || selectedRole || 'patient'), { replace: true });
+        return;
+      }
+
+      navigate('/role-selection', { replace: true });
+    }, 1400);
+
     return () => window.clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, user]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">

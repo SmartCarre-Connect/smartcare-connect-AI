@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Language, MedicineItem } from '../types';
 import { mockMedicines } from '../data/mockData';
 import { translations } from '../data/translations';
@@ -12,6 +12,9 @@ import {
   MapPin,
   Sparkles,
   Check,
+  FileText,
+  ShieldCheck,
+  BellRing,
 } from 'lucide-react';
 
 interface MedicineAvailabilityProps {
@@ -23,6 +26,7 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [reservedMedicines, setReservedMedicines] = useState<Record<string, boolean>>({});
+  const [selectedMedicine, setSelectedMedicine] = useState<MedicineItem | null>(mockMedicines[0]);
 
   const categories = ['All', 'Antibiotics', 'Analgesics', 'Cardiovascular', 'Antidiabetic', 'Respiratory', 'Gastric'];
 
@@ -40,6 +44,8 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
       [medId]: !prev[medId],
     }));
   };
+
+  const selectedMedicineDetails = useMemo(() => selectedMedicine || mockMedicines[0], [selectedMedicine]);
 
   const getStockBadge = (status: string, count: number) => {
     if (status === 'in_stock') {
@@ -96,7 +102,7 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
           <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
           <input
             type="text"
-            placeholder={t.searchMedicine}
+            placeholder={t.searchMedicines}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 shadow-xs"
@@ -124,7 +130,59 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
         </div>
       </div>
 
-      {/* Medicines Table / Cards */}
+      <div className="grid gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-2xl bg-white p-4 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Low stock alert</p>
+          <p className="mt-1 text-sm font-semibold text-slate-800">Glycomet 500 mg currently below safe inventory threshold.</p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nearby pharmacy</p>
+          <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-700"><BellRing className="h-4 w-4 text-sky-500" /> Main Pharmacy • Counter 3 • Open till 10 PM</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-800">Selected medicine insight</h3>
+          <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-slate-800">{selectedMedicineDetails.name}</p>
+                <p className="text-xs text-slate-500">{selectedMedicineDetails.genericName}</p>
+              </div>
+              <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">{selectedMedicineDetails.status.replace('_',' ')}</div>
+            </div>
+            <p className="text-xs leading-relaxed text-slate-600">{selectedMedicineDetails.description}</p>
+            <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
+              <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Dosage:</span> {selectedMedicineDetails.dosage}</div>
+              <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Nearby:</span> {selectedMedicineDetails.nearbyPharmacy}</div>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
+              <div className="flex items-center gap-2 font-semibold text-slate-700"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Hospital pharmacy stock</div>
+              <p className="mt-1">{selectedMedicineDetails.hospitalPharmacyStock}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700"><FileText className="h-4 w-4 text-sky-500" /> Admin-ready inventory view</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Stock quantity</p>
+              <p className="mt-1 font-semibold text-slate-800">{selectedMedicineDetails.stockCount} units</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dosage form</p>
+              <p className="mt-1 font-semibold text-slate-800">{selectedMedicineDetails.dosageForm}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 sm:col-span-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Generic alternatives</p>
+              <p className="mt-1 font-semibold text-slate-800">{selectedMedicineDetails.substitutes.join(', ')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMedicines.map((med) => {
           const isReserved = !!reservedMedicines[med.id];
@@ -134,7 +192,7 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
               className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:border-sky-500 transition-all duration-200 flex flex-col justify-between space-y-4 group"
             >
               <div className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
+                <button type="button" onClick={() => setSelectedMedicine(med)} className="flex items-start justify-between gap-3 text-left w-full">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center shrink-0">
                       <Pill className="w-6 h-6" />
@@ -146,7 +204,7 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
                       <p className="text-xs text-slate-400 font-mono">{med.genericName}</p>
                     </div>
                   </div>
-                </div>
+                </button>
 
                 <div className="flex items-center justify-between">
                   {getStockBadge(med.status, med.stockCount)}

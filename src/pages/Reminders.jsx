@@ -1,5 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { remindersApi } from '../services/api';
+
+const normalizeReminder = (reminder) => {
+  const schedule = [];
+  if (reminder.morning) schedule.push('Morning');
+  if (reminder.afternoon) schedule.push('Afternoon');
+  if (reminder.evening) schedule.push('Evening');
+  if (reminder.night) schedule.push('Night');
+
+  const timeSlots = [];
+  if (reminder.morning) timeSlots.push('08:00 AM');
+  if (reminder.afternoon) timeSlots.push('01:00 PM');
+  if (reminder.evening) timeSlots.push('07:00 PM');
+  if (reminder.night) timeSlots.push('10:00 PM');
+
+  return {
+    ...reminder,
+    id: reminder.id || reminder._id,
+    medicine_name: reminder.medicine_name || reminder.medicineName || 'Medication',
+    dosage: reminder.dosage || 'As directed',
+    schedule: schedule.length ? schedule : ['Morning'],
+    time_slots: reminder.time_slots?.length ? reminder.time_slots : timeSlots,
+    instructions: reminder.instruction || reminder.instructions || 'Take as advised',
+    status_today: reminder.status_today || reminder.status || 'Pending',
+    adherence_rate: reminder.adherence_rate || 100,
+  };
+};
 import DisclaimerBanner from '../components/ui/DisclaimerBanner';
 import PageHeader from '../components/ui/PageHeader';
 import Card from '../components/ui/Card';
@@ -23,9 +49,11 @@ export const Reminders = () => {
   const fetchReminders = async () => {
     try {
       const res = await remindersApi.list();
-      setReminders(res.data);
+      const payload = Array.isArray(res.data) ? res.data : res.data?.reminders || [];
+      setReminders(payload.map(normalizeReminder));
     } catch (err) {
       console.error(err);
+      setReminders([]);
     }
   };
 
@@ -47,18 +75,38 @@ export const Reminders = () => {
 
   const handleStatusChange = async (id, status) => {
     try {
-      const res = await remindersApi.updateStatus(id, status);
-      setReminders((prev) => prev.map(r => r.id === id ? res.data : r));
+      await remindersApi.updateStatus(id, status);
+      setReminders((prev) => prev.map((reminder) =>
+        reminder.id === id ? { ...reminder, status_today: status } : reminder
+      ));
     } catch (err) {
-      setReminders((prev) => prev.map(r => r.id === id ? { ...r, status_today: status } : r));
+      setReminders((prev) => prev.map((reminder) =>
+        reminder.id === id ? { ...reminder, status_today: status } : reminder
+      ));
     }
   };
 
   const handleAddReminder = async (e) => {
     e.preventDefault();
     try {
-      const res = await remindersApi.create(newMed);
-      setReminders((prev) => [res.data, ...prev]);
+      const payload = {
+        medicine_name: newMed.medicine_name,
+        dosage: newMed.dosage,
+        morning: true,
+        afternoon: false,
+        evening: false,
+        night: false,
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: new Date().toISOString().split('T')[0],
+        instruction: newMed.instructions,
+      };
+
+      const res = await remindersApi.create(payload);
+      const createdReminder = normalizeReminder({
+        ...payload,
+        id: res.data?.id || res.data?.data?.id,
+      });
+      setReminders((prev) => [createdReminder, ...prev]);
       setShowModal(false);
       setNewMed({ medicine_name: '', dosage: '', schedule: ['Morning'], time_slots: ['08:00 AM'], instructions: '' });
     } catch (err) {

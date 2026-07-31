@@ -39,12 +39,20 @@ export default function NotificationsPage() {
     try {
       const res = await notificationsApi.list(1);
       const data = res.data?.data || res.data || {};
-      setNotifications(data.notifications || []);
+      const items = Array.isArray(data) ? data : data.notifications || [];
+      setNotifications(items.map((item) => ({
+        ...item,
+        id: item.id || item._id,
+        title: item.title || 'Notification',
+        message: item.message || '',
+        type: item.type || 'general',
+        is_read: item.is_read ?? item.isRead ?? false,
+        created_at: item.created_at || item.createdAt || new Date().toISOString(),
+      })));
       setUnread(data.unread || 0);
     } catch {
-      // use demo data if backend is offline
-      setNotifications(DEMO_NOTIFICATIONS);
-      setUnread(3);
+      setNotifications([]);
+      setUnread(0);
     } finally {
       setLoading(false);
     }
@@ -220,46 +228,4 @@ export default function NotificationsPage() {
   );
 }
 
-// Demo data for when backend is offline
-const DEMO_NOTIFICATIONS = [
-  {
-    id: '1',
-    title: 'Appointment Confirmed',
-    message: 'Your appointment with Dr. Sarah Wilson on July 30 at 10:00 AM has been confirmed.',
-    type: 'appointment',
-    is_read: false,
-    created_at: new Date(Date.now() - 5 * 60000).toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Lab Report Ready',
-    message: 'Your Complete Blood Count report is ready. Click to view your results.',
-    type: 'report',
-    is_read: false,
-    created_at: new Date(Date.now() - 2 * 3600000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Medicine Reminder',
-    message: 'Time to take Amoxicillin 500mg. Remember to take it after food.',
-    type: 'reminder',
-    is_read: false,
-    created_at: new Date(Date.now() - 4 * 3600000).toISOString(),
-  },
-  {
-    id: '4',
-    title: 'Health Tip',
-    message: 'Your average heart rate this week is excellent! Keep up the great work.',
-    type: 'vitals',
-    is_read: true,
-    created_at: new Date(Date.now() - 24 * 3600000).toISOString(),
-  },
-  {
-    id: '5',
-    title: 'Prescription Updated',
-    message: 'Dr. James updated your prescription. Review the new medications added.',
-    type: 'general',
-    is_read: true,
-    created_at: new Date(Date.now() - 48 * 3600000).toISOString(),
-  },
-];
+

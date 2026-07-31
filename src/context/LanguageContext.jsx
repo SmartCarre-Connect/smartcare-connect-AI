@@ -6,7 +6,7 @@ import mr from '../locales/mr.json';
 const translations = { en, hi, mr };
 
 const languageOptions = [
-  { code: 'en', label: 'English', nativeLabel: 'English', flag: '🇺🇸', greeting: 'Hello' },
+  { code: 'en', label: 'English', nativeLabel: 'English', flag: '�🇧', greeting: 'Hello' },
   { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳', greeting: 'नमस्ते' },
   { code: 'mr', label: 'Marathi', nativeLabel: 'मराठी', flag: '🇮🇳', greeting: 'नमस्कार' },
 ];

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Language, OpdSlip, UserProfile } from '../types';
-import { mockDoctors } from '../data/mockData';
 import { translations } from '../data/translations';
+import { appointmentsApi, doctorsApi } from '../services/api';
 import {
   FileText,
   QrCode,
@@ -14,16 +14,23 @@ import {
   Building,
   Sparkles,
   Award,
+  Brain,
+  ArrowRight,
+  BellRing,
+  HeartPulse,
+  X,
 } from 'lucide-react';
 
 interface OpdRegistrationProps {
   currentLanguage: Language;
   currentUser: UserProfile;
+  initialSelectedDoctorId?: string;
 }
 
 export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
   currentLanguage,
   currentUser,
+  initialSelectedDoctorId,
 }) => {
   const t = translations[currentLanguage];
 
@@ -33,7 +40,8 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
   const [patientPhone, setPatientPhone] = useState(currentUser.phone || '9876543210');
   const [bloodGroup, setBloodGroup] = useState(currentUser.bloodGroup || 'O+');
   const [selectedDept, setSelectedDept] = useState('Cardiology');
-  const [selectedDoctorId, setSelectedDoctorId] = useState(mockDoctors[0].id);
+  const [selectedDoctorId, setSelectedDoctorId] = useState(initialSelectedDoctorId || '');
+  const [showDoctorSelectionAlert, setShowDoctorSelectionAlert] = useState(false);
   const [appointmentDate, setAppointmentDate] = useState(new Date().toISOString().split('T')[0]);
   const [timeSlot, setTimeSlot] = useState('10:00 AM - 11:00 AM');
   const [symptoms, setSymptoms] = useState('Mild chest discomfort & fatigue during morning exercise');
@@ -41,49 +49,149 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
 
   const [activeSlip, setActiveSlip] = useState<OpdSlip | null>(null);
   const [savedSlips, setSavedSlips] = useState<OpdSlip[]>([]);
+  const [recommendation, setRecommendation] = useState<{department: string; specialist: string; urgency: string; advice: string} | null>(null);
+  const [selectedHospitalBranch, setSelectedHospitalBranch] = useState('SmartCare Central Hospital');
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  // Filter doctors based on selected department
-  const filteredDoctors = mockDoctors.filter(
-    (d) => d.specialization.toLowerCase().includes(selectedDept.toLowerCase()) || selectedDept === 'All'
-  );
-
-  const selectedDoctorObj = mockDoctors.find((d) => d.id === selectedDoctorId) || mockDoctors[0];
-
-  const handleGenerateSlip = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const deptPrefix = selectedDept.slice(0, 3).toUpperCase();
-    const tokenSeq = Math.floor(10 + Math.random() * 85);
-    const tokenNum = `OPD-${deptPrefix}-${tokenSeq}`;
-    const uhid = `UHID-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    const newSlip: OpdSlip = {
-      tokenNumber: tokenNum,
-      patientUhid: uhid,
-      patientName,
-      patientAge: Number(patientAge),
-      patientGender,
-      patientPhone,
-      bloodGroup,
-      department: selectedDept,
-      doctorName: selectedDoctorObj.name,
-      opdRoom: selectedDoctorObj.opdRoom,
-      appointmentDate,
-      timeSlot,
-      symptoms,
-      scheme,
-      paymentStatus: scheme.includes('Cash') ? 'paid' : 'covered_under_scheme',
-      fee: scheme.includes('Cash') ? selectedDoctorObj.fee : 0,
-      qrCodeValue: `https://smartcare.org/opd/verify?token=${tokenNum}&uhid=${uhid}`,
-      createdTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  useEffect(() => {
+    const loadDoctors = async () => {
+      try {
+        const response = await doctorsApi.list();
+        const payload = response.data?.doctors || response.data?.data || response.data || [];
+        const doctorList = Array.isArray(payload) ? payload : payload.doctors || [];
+        setDoctors(doctorList);
+        const initialDoctorId = initialSelectedDoctorId || doctorList[0]?._id || doctorList[0]?.id || '';
+        if (initialDoctorId) {
+          setSelectedDoctorId(initialDoctorId);
+        }
+      } catch {
+        setDoctors([]);
+      } finally {
+        setLoadingDoctors(false);
+      }
     };
 
-    setActiveSlip(newSlip);
-    setSavedSlips((prev) => [newSlip, ...prev]);
+    loadDoctors();
+  }, [initialSelectedDoctorId]);
+
+  useEffect(() => {
+    if (initialSelectedDoctorId) {
+      setShowDoctorSelectionAlert(true);
+    }
+  }, [initialSelectedDoctorId]);
+
+  const filteredDoctors = doctors.filter((doctor) => {
+    const name = (doctor.full_name || doctor.name || '').toLowerCase();
+    const specialization = (doctor.specialization || '').toLowerCase();
+    const deptName = selectedDept.toLowerCase();
+    return specialization.includes(deptName) || name.includes(deptName) || selectedDept === 'All' || deptName === 'general medicine';
+  });
+
+  const selectedDoctorObj = filteredDoctors.find((doctor) => (doctor._id || doctor.id) === selectedDoctorId) || filteredDoctors[0] || {
+    full_name: 'Selected Specialist',
+    specialization: selectedDept,
+    consultation_fee: 0,
+    opd_room: 'Room TBD',
+  };
+
+  useEffect(() => {
+    if (filteredDoctors.length === 0) {
+      return;
+    }
+
+    const hasSelectedDoctor = filteredDoctors.some((doctor) => (doctor._id || doctor.id) === selectedDoctorId);
+    if (!hasSelectedDoctor) {
+      setSelectedDoctorId(filteredDoctors[0]._id || filteredDoctors[0].id || '');
+    }
+  }, [filteredDoctors, selectedDoctorId]);
+
+  const recommendationSummary = useMemo(() => {
+    const lowerSymptoms = symptoms.toLowerCase();
+    if (lowerSymptoms.includes('chest') || lowerSymptoms.includes('pain') || lowerSymptoms.includes('breathing')) {
+      return { department: 'Cardiology', specialist: 'Dr. Anjali Deshmukh', urgency: 'Urgent', advice: 'Seek medical attention promptly if symptoms worsen or persist.' };
+    }
+    if (lowerSymptoms.includes('joint') || lowerSymptoms.includes('bone') || lowerSymptoms.includes('knee')) {
+      return { department: 'Orthopedics', specialist: 'Dr. Vikram Sharma', urgency: 'Routine', advice: 'Keep the affected area rested and avoid heavy activity until consultation.' };
+    }
+    if (lowerSymptoms.includes('child') || lowerSymptoms.includes('fever') || lowerSymptoms.includes('cough')) {
+      return { department: 'Pediatrics', specialist: 'Dr. Sunita Kulkarni', urgency: 'Soon', advice: 'Monitor temperature and hydration closely before the visit.' };
+    }
+    return { department: selectedDept, specialist: selectedDoctorObj.full_name || selectedDoctorObj.name || 'Selected Specialist', urgency: 'Routine', advice: 'A clinical review is recommended for continued symptoms.' };
+  }, [selectedDept, selectedDoctorObj.full_name, selectedDoctorObj.name, symptoms]);
+
+  const handleGenerateSlip = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loadingDoctors) {
+      setError('Doctors are still loading. Please wait before creating your appointment.');
+      return;
+    }
+    if (!selectedDoctorId || filteredDoctors.length === 0) {
+      setError('Please select a doctor before generating an OPD slip.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      await appointmentsApi.create({
+        doctor_id: selectedDoctorId,
+        appointment_date: appointmentDate,
+        time_slot: timeSlot,
+        reason: symptoms,
+      });
+
+      const deptPrefix = selectedDept.slice(0, 3).toUpperCase();
+      const tokenSeq = Math.floor(10 + Math.random() * 85);
+      const tokenNum = `OPD-${deptPrefix}-${tokenSeq}`;
+      const uhid = `UHID-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+      const registrationId = `REG-${Math.floor(1000 + Math.random() * 9000)}`;
+      const opdNumber = `OPD-${Math.floor(10000 + Math.random() * 90000)}`;
+
+      const newSlip: OpdSlip = {
+        tokenNumber: tokenNum,
+        patientUhid: uhid,
+        patientName,
+        patientAge: Number(patientAge),
+        patientGender,
+        patientPhone,
+        bloodGroup,
+        department: selectedDept,
+        doctorName: selectedDoctorObj.full_name || selectedDoctorObj.name || 'Selected Specialist',
+        opdRoom: selectedDoctorObj.opd_room || selectedDoctorObj.opdRoom || 'Room TBD',
+        appointmentDate,
+        timeSlot,
+        symptoms,
+        scheme,
+        paymentStatus: scheme.includes('Cash') ? 'paid' : 'covered_under_scheme',
+        fee: scheme.includes('Cash') ? Number(selectedDoctorObj.consultation_fee || selectedDoctorObj.fee || 0) : 0,
+        qrCodeValue: `https://smartcare.org/opd/verify?token=${tokenNum}&uhid=${uhid}`,
+        createdTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        registrationId,
+        opdNumber,
+        hospitalBranch: selectedHospitalBranch,
+        appointmentTime: timeSlot,
+        status: 'confirmed',
+      };
+
+      setActiveSlip(newSlip);
+      setSavedSlips((prev) => [newSlip, ...prev]);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || 'Unable to create the appointment right now.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleSymptomRecommendation = () => {
+    setRecommendation(recommendationSummary);
   };
 
   return (
@@ -117,6 +225,25 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
             <FileText className="w-5 h-5 text-sky-600" />
             <span>OPD Registration Form</span>
           </h3>
+
+          {showDoctorSelectionAlert && selectedDoctorObj.full_name && (
+            <div className="mb-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-slate-700 flex items-start justify-between gap-4">
+              <div>
+                <p className="font-semibold text-slate-900">Doctor selected from availability</p>
+                <p className="mt-1 text-slate-600">
+                  You chose <span className="font-semibold">{selectedDoctorObj.full_name}</span> ({selectedDoctorObj.specialization}). Continue with this booking or pick a different doctor below.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDoctorSelectionAlert(false)}
+                className="rounded-full p-2 text-slate-500 hover:bg-sky-100 hover:text-slate-900 transition"
+                aria-label="Dismiss doctor selection notice"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleGenerateSlip} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -222,11 +349,21 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
                   onChange={(e) => setSelectedDoctorId(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
                 >
-                  {filteredDoctors.map((doc) => (
-                    <option key={doc.id} value={doc.id}>
-                      {doc.name} ({doc.specialization})
-                    </option>
-                  ))}
+                  {loadingDoctors ? (
+                    <option value="">Loading doctors…</option>
+                  ) : filteredDoctors.length > 0 ? (
+                    filteredDoctors.map((doc) => {
+                      const doctorId = doc._id || doc.id;
+                      const doctorName = doc.full_name || doc.name || 'Doctor';
+                      return (
+                        <option key={doctorId} value={doctorId}>
+                          {doctorName} ({doc.specialization})
+                        </option>
+                      );
+                    })
+                  ) : (
+                    <option value="">No doctors available</option>
+                  )}
                 </select>
               </div>
             </div>
@@ -269,12 +406,32 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
                 {t.chiefComplaint}
               </label>
               <textarea
+                aria-label="Describe your symptoms"
                 rows={2}
                 value={symptoms}
                 onChange={(e) => setSymptoms(e.target.value)}
                 placeholder="Describe your symptoms or reason for visiting..."
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
               />
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <Brain className="h-4 w-4 text-sky-600" />
+                AI symptom guidance
+              </div>
+              <p className="mt-2 text-xs text-slate-600">This recommendation is informational only and does not replace professional medical diagnosis.</p>
+              <button type="button" onClick={handleSymptomRecommendation} className="mt-3 inline-flex items-center gap-2 rounded-full bg-sky-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white">
+                Check recommendation <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+              {recommendation && (
+                <div className="mt-3 rounded-xl border border-sky-200 bg-white p-3 text-xs text-slate-700">
+                  <div className="flex items-center gap-2 font-semibold text-slate-800"><HeartPulse className="h-3.5 w-3.5 text-rose-500" /> {recommendation.department}</div>
+                  <p className="mt-1">Suggested specialist: {recommendation.specialist}</p>
+                  <p className="mt-1">Urgency: <span className="font-semibold text-sky-700">{recommendation.urgency}</span></p>
+                  <p className="mt-1">Advice: {recommendation.advice}</p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -289,16 +446,23 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
               >
                 <option value="Ayushman Bharat (PM-JAY)">{t.ayushmanBharat} [Free / Cashless]</option>
                 <option value="Mahatma Jyotirao Phule Jan Arogya Yojana (MJPJAY)">{t.mjpjay} [Free / Cashless]</option>
-                <option value="Direct Cash Payment">{t.noneCash} (₹{selectedDoctorObj.fee})</option>
+                <option value="Direct Cash Payment">{t.noneCash} (₹{selectedDoctorObj.consultation_fee || selectedDoctorObj.fee || 0})</option>
               </select>
             </div>
 
+            {error && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full py-4 px-6 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm uppercase tracking-widest rounded-2xl shadow-lg shadow-sky-200 flex items-center justify-center gap-2 transition-all cursor-pointer mt-6"
+              disabled={submitting || loadingDoctors || filteredDoctors.length === 0}
+              className="w-full py-4 px-6 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm uppercase tracking-widest rounded-2xl shadow-lg shadow-sky-200 flex items-center justify-center gap-2 transition-all cursor-pointer mt-6 disabled:opacity-60"
             >
               <QrCode className="w-5 h-5" />
-              <span>{t.generateOpdSlip}</span>
+              <span>{submitting ? 'Creating appointment…' : loadingDoctors ? 'Loading doctors…' : t.generateOpdSlip}</span>
             </button>
           </form>
         </div>
@@ -367,6 +531,17 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
                     {activeSlip.scheme} • {activeSlip.fee === 0 ? 'Cashless / Free' : `₹${activeSlip.fee}`}
                   </span>
                 </div>
+                <div className="col-span-2 pt-2 border-t border-slate-200">
+                  <span className="text-slate-400 font-bold uppercase text-[10px] block">Registration details</span>
+                  <span className="font-semibold text-slate-700">
+                    {activeSlip.registrationId} • {activeSlip.opdNumber} • {activeSlip.hospitalBranch}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+                <div className="flex items-center gap-2 font-semibold text-slate-800"><BellRing className="h-4 w-4 text-amber-500" /> Smart notifications</div>
+                <p className="mt-2">Confirmation, token updates, and reminder alerts will be delivered to your registered mobile number and app inbox.</p>
               </div>
 
               {/* Simulated QR Code Kiosk Scanner */}

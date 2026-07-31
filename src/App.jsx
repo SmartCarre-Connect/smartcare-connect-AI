@@ -47,10 +47,8 @@ import IntroVideoPage from './pages/IntroVideoPage';
 
 function InitialRouteRedirect() {
   const { user, selectedRole, loading } = useAuth();
-    const languageSelected = typeof window !== 'undefined' && window.localStorage.getItem('selected_language');
-  const introWatched = typeof window !== 'undefined' && window.localStorage.getItem('smartcare-intro-watched') === 'true';
+  const languageSelected = typeof window !== 'undefined' && !!window.localStorage.getItem('selected_language');
   const role = user?.role || selectedRole || (typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_selected_role')) || 'patient';
-  const onboardingCompleted = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${role}`) === 'true';
 
   if (loading) {
     return null;
@@ -60,15 +58,15 @@ function InitialRouteRedirect() {
     return <Navigate to={roleHome(role)} replace />;
   }
 
+  return <Navigate to="/splash" replace />;
+}
+
+function RequireLanguageSelection({ children }) {
+  const languageSelected = typeof window !== 'undefined' && !!window.localStorage.getItem('selected_language');
   if (!languageSelected) {
     return <Navigate to="/language-selection" replace />;
   }
-
-  if (!introWatched) {
-    return <Navigate to="/intro-video" replace />;
-  }
-
-  return <Navigate to="/splash" replace />;
+  return children;
 }
 
 export function App() {
@@ -81,13 +79,15 @@ export function App() {
             <Routes>
               <Route path="/" element={<InitialRouteRedirect />} />
               <Route path="/language-selection" element={<LanguageSelectionPage />} />
-              <Route path="/intro-video" element={<IntroVideoPage />} />
+              <Route path="/intro-video" element={<RequireLanguageSelection><IntroVideoPage /></RequireLanguageSelection>} />
               <Route path="/splash" element={<SplashScreen />} />
-              <Route path="/welcome" element={<WelcomePage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/role-selection" element={<RoleSelectionPage />} />
+              <Route path="/welcome" element={<RequireLanguageSelection><WelcomePage /></RequireLanguageSelection>} />
+              <Route path="/login" element={<RequireLanguageSelection><Login /></RequireLanguageSelection>} />
+              <Route path="/register" element={<RequireLanguageSelection><Register /></RequireLanguageSelection>} />
+              <Route path="/role-selection" element={<RequireLanguageSelection><RoleSelectionPage /></RequireLanguageSelection>} />
               <Route path="/presenter" element={<AIVirtualPresenter />} />
+              <Route path="/hospital-map" element={<HospitalMapPage />} />
+              <Route path="/help-center" element={<HelpCenter />} />
               <Route path="/presenter-manager" element={<RoleRoute allowedRoles={["admin"]}><PresentationManager /></RoleRoute>} />
 
             <Route element={<RoleShell />}>
@@ -117,8 +117,6 @@ export function App() {
                 <Route path="/doctors" element={<DoctorFinderPage />} />
                 <Route path="/vitals" element={<VitalsTrackerPage />} />
                 <Route path="/attendance" element={<AttendancePage />} />
-                <Route path="/hospital-map" element={<HospitalMapPage />} />
-                <Route path="/help-center" element={<HelpCenter />} />
               </Route>
             </Route>
 

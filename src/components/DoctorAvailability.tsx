@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Language } from '../types';
 import { mockDoctors } from '../data/mockData';
 import { translations } from '../data/translations';
@@ -13,6 +13,9 @@ import {
   PhoneCall,
   Sparkles,
   Award,
+  Star,
+  ChevronRight,
+  BellRing,
 } from 'lucide-react';
 
 interface DoctorAvailabilityProps {
@@ -27,15 +30,19 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
   const t = translations[currentLanguage];
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
+  const [selectedSpecialization, setSelectedSpecialization] = useState('All');
+  const [highlightedDoctorId, setHighlightedDoctorId] = useState<string | null>(mockDoctors[0].id);
 
   const departments = ['All', 'Cardiology', 'Orthopedics', 'Pediatrics', 'General Medicine', 'Neurology', 'Gynecology'];
+  const specializations = useMemo(() => ['All', ...Array.from(new Set(mockDoctors.map((doc) => doc.department)))], []);
 
   const filteredDoctors = mockDoctors.filter((doc) => {
     const matchesSearch =
       doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.specialization.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDept = selectedDeptFilter === 'All' || doc.specialization === selectedDeptFilter;
-    return matchesSearch && matchesDept;
+    const matchesSpecialization = selectedSpecialization === 'All' || doc.department === selectedSpecialization;
+    return matchesSearch && matchesDept && matchesSpecialization;
   });
 
   const getStatusBadge = (status: string) => {
@@ -44,14 +51,14 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
         return (
           <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{t.availableNow}</span>
+            <span>{t.statusAvailable}</span>
           </span>
         );
       case 'in_opd':
         return (
           <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-amber-600" />
-            <span>{t.inOpd}</span>
+            <span>{t.statusInOpd}</span>
           </span>
         );
       case 'emergency':
@@ -130,6 +137,34 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
         </div>
       </div>
 
+      <div className="grid gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-3">
+        <div className="rounded-2xl bg-white p-4 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Today's availability</p>
+          <p className="mt-1 text-xl font-bold text-slate-800">14 Specialists</p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Next available slot</p>
+          <p className="mt-1 text-xl font-bold text-slate-800">11:30 AM</p>
+        </div>
+        <div className="rounded-2xl bg-white p-4 shadow-xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Notifications</p>
+          <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-slate-700"><BellRing className="h-4 w-4 text-sky-500" /> Token updates live</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0">
+          {specializations.map((specialty) => {
+            const isSelected = selectedSpecialization === specialty;
+            return (
+              <button key={specialty} type="button" onClick={() => setSelectedSpecialization(specialty)} className={`rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap ${isSelected ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}>
+                {specialty}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Doctors Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDoctors.map((doc) => (
@@ -138,6 +173,15 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
             className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:border-sky-500 transition-all duration-200 flex flex-col justify-between space-y-5 group"
           >
             <div className="space-y-4">
+              <button type="button" onClick={() => setHighlightedDoctorId(doc.id)} className="text-left w-full">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <Star className="h-3.5 w-3.5 text-amber-500" />
+                    {doc.rating.toFixed(1)} • {doc.reviewCount} reviews
+                  </div>
+                  {highlightedDoctorId === doc.id && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Recommended</span>}
+                </div>
+              </button>
               {/* Doctor Avatar & Status Header */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -163,6 +207,12 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
                 </span>
               </div>
 
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
+                <p className="font-semibold text-slate-700">{doc.reviewSummary}</p>
+                <p className="mt-1">Languages: {doc.languagesSpoken.join(', ')}</p>
+                <p className="mt-1">Weekly schedule: {doc.weeklySchedule.slice(0, 2).join(' • ')}</p>
+              </div>
+
               {/* Info Badges */}
               <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-200">
                 <div className="flex items-center gap-2 text-slate-600">
@@ -182,6 +232,13 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
               </div>
             </div>
 
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-700">Next available slot</span>
+                <span className="font-bold text-sky-700">{doc.nextAvailableSlot}</span>
+              </div>
+            </div>
+
             {/* Book Token Button */}
             <button
               type="button"
@@ -190,6 +247,7 @@ export const DoctorAvailability: React.FC<DoctorAvailabilityProps> = ({
             >
               <Calendar className="w-4 h-4" />
               <span>{t.bookToken}</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         ))}

@@ -43,6 +43,12 @@ export interface DoctorSchedule {
   totalTokens: number;
   avatarUrl: string;
   languagesSpoken: string[];
+  weeklySchedule: string[];
+  nextAvailableSlot: string;
+  rating: number;
+  reviewCount: number;
+  reviewSummary: string;
+  department: string;
 }
 
 export interface MedicineItem {
@@ -57,6 +63,10 @@ export interface MedicineItem {
   dosageForm: string; // Tablet, Syrup, Injection, Ointment
   manufacturer: string;
   substitutes: string[];
+  description: string;
+  dosage: string;
+  nearbyPharmacy: string;
+  hospitalPharmacyStock: string;
 }
 
 export interface OpdSlip {
@@ -78,6 +88,40 @@ export interface OpdSlip {
   fee: number;
   qrCodeValue: string;
   createdTimestamp: string;
+  registrationId?: string;
+  opdNumber?: string;
+  hospitalBranch?: string;
+  appointmentTime?: string;
+  status?: 'confirmed' | 'cancelled' | 'rescheduled' | 'completed';
+}
+
+export interface FamilyMember {
+  id: string;
+  relation: string;
+  name: string;
+  bloodGroup: string;
+  medicalHistory: string;
+  appointments: string[];
+  reports: string[];
+  prescriptions: string[];
+}
+
+export interface AnnouncementItem {
+  id: string;
+  title: string;
+  type: string;
+  message: string;
+  severity: 'info' | 'warning' | 'urgent';
+  date: string;
+}
+
+export interface NavigationDestination {
+  id: string;
+  name: string;
+  floor: string;
+  route: string;
+  time: string;
+  accessible: boolean;
 }
 
 export interface WalkthroughStep {
