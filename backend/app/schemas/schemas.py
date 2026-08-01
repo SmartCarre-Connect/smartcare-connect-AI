@@ -22,6 +22,25 @@ class RegisterRequest(BaseModel):
     phone: str = Field(..., min_length=10, max_length=15)
     password: str = Field(..., min_length=6)
     role: UserRole = UserRole.PATIENT
+    # Optional role-specific fields
+    blood_group: Optional[str] = None
+    address: Optional[str] = None
+    dob: Optional[str] = None
+    gender: Optional[str] = None
+    emergency_contact: Optional[str] = None
+
+    medical_reg_number: Optional[str] = None
+    specialization: Optional[str] = None
+    department: Optional[str] = None
+    experience: Optional[int] = None
+    hospital_id: Optional[str] = None
+
+    employee_id: Optional[str] = None
+    designation: Optional[str] = None
+
+    college_name: Optional[str] = None
+    supervisor: Optional[str] = None
+    year: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
@@ -106,6 +125,21 @@ class AppointmentCreate(BaseModel):
     appointment_date: str
     time_slot: str
     reason: Optional[str] = None
+    scheme: Optional[str] = None
+    payment_status: Optional[str] = None
+    fee: Optional[float] = None
+    hospital_branch: Optional[str] = None
+    patient_name: Optional[str] = None
+    patient_age: Optional[int] = None
+    patient_gender: Optional[str] = None
+    patient_phone: Optional[str] = None
+    blood_group: Optional[str] = None
+    opd_room: Optional[str] = None
+    token_number: Optional[str] = None
+    patient_uhid: Optional[str] = None
+    registration_id: Optional[str] = None
+    opd_number: Optional[str] = None
+    qr_code_value: Optional[str] = None
 
 
 class AppointmentUpdate(BaseModel):

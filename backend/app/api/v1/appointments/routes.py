@@ -34,22 +34,53 @@ async def create_appointment(data: AppointmentCreate, current_user: dict = Depen
     if existing:
         raise HTTPException(status_code=409, detail="Time slot already booked")
 
+    dept_prefix = (data.department_id or doctor.get("department_id") or "OPD")
+    token_prefix = str(dept_prefix)[:3].upper()
+    token_number = data.token_number or f"OPD-{token_prefix}-{random.randint(10, 99)}"
+    patient_uhid = data.patient_uhid or f"UHID-2026-{random.randint(100000, 999999)}"
+    registration_id = data.registration_id or f"REG-{random.randint(1000, 9999)}"
+    opd_number = data.opd_number or f"OPD-{random.randint(10000, 99999)}"
+    scheme = data.scheme or "Ayushman Bharat (PM-JAY)"
+    payment_status = data.payment_status or ("paid" if "Cash" in scheme else "covered_under_scheme")
+    fee = data.fee if data.fee is not None else float(doctor.get("consultation_fee", 0) or 0)
+    hospital_branch = data.hospital_branch or "SmartCare Central Hospital"
+    opd_room = data.opd_room or doctor.get("opd_room") or "Room TBD"
+
+    doctor_user = await db.users.find_one({"_id": doctor["user_id"]}) if doctor.get("user_id") else None
     appointment_doc = {
         "appointment_id": f"APT{random.randint(10000, 99999)}",
         "patient_id": patient["_id"],
         "doctor_id": ObjectId(data.doctor_id),
+        "doctor_name": doctor_user.get("full_name", "") if doctor_user else "",
         "department_id": ObjectId(data.department_id) if data.department_id else doctor.get("department_id"),
+        "department": doctor.get("department") or doctor.get("specialization") or data.department_id or "General Medicine",
         "appointment_date": data.appointment_date,
         "time_slot": data.time_slot,
-        "status": "Booked",
+        "status": "Confirmed",
         "reason": data.reason or "",
+        "scheme": scheme,
+        "payment_status": payment_status,
+        "fee": fee,
+        "hospital_branch": hospital_branch,
+        "patient_name": data.patient_name or current_user.get("full_name", ""),
+        "patient_age": data.patient_age,
+        "patient_gender": data.patient_gender,
+        "patient_phone": data.patient_phone or current_user.get("phone", ""),
+        "blood_group": data.blood_group,
+        "opd_room": opd_room,
+        "token_number": token_number,
+        "patient_uhid": patient_uhid,
+        "registration_id": registration_id,
+        "opd_number": opd_number,
+        "qr_code_value": data.qr_code_value or f"https://smartcare.org/opd/verify?token={token_number}&uhid={patient_uhid}",
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_timestamp": datetime.now(timezone.utc).astimezone().strftime("%I:%M %p"),
     }
     result = await db.appointments.insert_one(appointment_doc)
+    appointment_doc["_id"] = result.inserted_id
 
     # Create notification for doctor
-    user_doc = await db.users.find_one({"_id": doctor["user_id"]})
-    if user_doc:
+    if doctor.get("user_id"):
         await db.notifications.insert_one({
             "user_id": doctor["user_id"],
             "title": "New Appointment",
@@ -60,7 +91,7 @@ async def create_appointment(data: AppointmentCreate, current_user: dict = Depen
         })
 
     return success_response(
-        data={"appointment_id": appointment_doc["appointment_id"], "id": str(result.inserted_id)},
+        data=serialize_doc(appointment_doc),
         message="Appointment booked successfully",
         status=201,
     )

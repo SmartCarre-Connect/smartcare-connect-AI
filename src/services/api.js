@@ -30,6 +30,8 @@ api.interceptors.response.use((response) => ({
 export const authApi = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
+  sendOtp: (payload) => api.post('/auth/send-otp', payload),
+  verifyOtp: (payload) => api.post('/auth/verify-otp', payload),
   getMe: () => api.get('/auth/me'),
   updateProfile: (profileData) => api.put('/users/me', profileData),
 };
@@ -65,7 +67,7 @@ export const chatApi = {
       ...response,
       data: { ...response.data, content: response.data.message },
     })),
-  listSessions: () => api.get('/ai/chat/sessions'),
+  listSessions: (search = '') => api.get('/ai/chat/sessions', { params: search ? { search } : undefined }),
   getSession: (id) => api.get(`/ai/chat/sessions/${id}/messages`),
   deleteSession: (id) => api.delete(`/ai/chat/sessions/${id}`),
 };

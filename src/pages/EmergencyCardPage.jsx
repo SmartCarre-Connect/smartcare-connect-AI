@@ -2,14 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { emergencyApi } from '../services/api';
 import DisclaimerBanner from '../components/ui/DisclaimerBanner';
 import { QRCodeSVG } from 'qrcode.react';
-import { ShieldAlert, Heart, Phone, AlertCircle, Pill, Download, Share2 } from 'lucide-react';
+import { ShieldAlert, Heart, Phone, AlertCircle, Pill, Share2, Copy } from 'lucide-react';
 
 export const EmergencyCardPage = () => {
   const [card, setCard] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     emergencyApi.getCard().then((res) => setCard(res.data)).catch(console.error);
   }, []);
+
+  const handleCallEmergency = () => {
+    const number = card?.emergency_contact?.replace(/[^0-9+]/g, '');
+    if (number) {
+      window.location.href = `tel:${number}`;
+    }
+  };
+
+  const handleCopyInfo = async () => {
+    const text = `Emergency Contact: ${card?.emergency_contact || 'N/A'}\nName: ${card?.user_name || 'N/A'}\nBlood Group: ${card?.blood_group || 'N/A'}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (!card) {
     return <div className="p-8 text-center text-xs text-slate-500">Loading Emergency Medical Profile...</div>;
@@ -72,6 +91,27 @@ export const EmergencyCardPage = () => {
             <QRCodeSVG value={card.qr_code_payload || 'EMERGENCY MEDICAL PROFILE'} size={170} />
             <span className="text-[10px] font-bold text-slate-900 mt-2 uppercase tracking-wider">Scan for Medical ID</span>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <button
+            onClick={handleCallEmergency}
+            className="flex items-center justify-center gap-2 rounded-3xl bg-rose-500 hover:bg-rose-600 text-white py-4 text-sm font-semibold transition-shadow shadow-lg"
+          >
+            <Phone size={18} /> Call Emergency
+          </button>
+          <button
+            onClick={handleCopyInfo}
+            className="flex items-center justify-center gap-2 rounded-3xl bg-slate-900 hover:bg-slate-800 text-white py-4 text-sm font-semibold transition-shadow shadow-lg"
+          >
+            <Copy size={18} /> {copied ? 'Copied!' : 'Copy Emergency Info'}
+          </button>
+          <a
+            href={`mailto:?subject=Emergency Medical Profile&body=Name: ${card.user_name}%0ABlood Group: ${card.blood_group}%0AEmergency Contact: ${card.emergency_contact}%0A`}
+            className="flex items-center justify-center gap-2 rounded-3xl bg-slate-100 hover:bg-slate-200 text-slate-900 py-4 text-sm font-semibold transition-shadow shadow-sm"
+          >
+            <Share2 size={18} /> Share Contact
+          </a>
         </div>
       </div>
     </div>

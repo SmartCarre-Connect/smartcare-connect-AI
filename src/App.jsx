@@ -27,7 +27,6 @@ import TimelinePage from './pages/TimelinePage';
 import WellnessPage from './pages/WellnessPage';
 import EmergencyCardPage from './pages/EmergencyCardPage';
 import ProfilePage from './pages/ProfilePage';
-import AdminDashboard from './pages/AdminDashboard';
 import HeartRateMonitor from './pages/HeartRateMonitor';
 import NotificationsPage from './pages/NotificationsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
@@ -42,13 +41,14 @@ import PatientDashboard from './pages/roleDashboards/PatientDashboard';
 import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
 import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
 import HrDashboard from './pages/roleDashboards/HrDashboard';
-import AdminDashboardPage from './pages/roleDashboards/AdminDashboard';
+import AdminDashboardPage from './pages/AdminDashboard';
 import IntroVideoPage from './pages/IntroVideoPage';
+import OnboardingPage from './pages/OnboardingPage';
 
 function InitialRouteRedirect() {
   const { user, selectedRole, loading } = useAuth();
   const languageSelected = typeof window !== 'undefined' && !!window.localStorage.getItem('selected_language');
-  const role = user?.role || selectedRole || (typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_selected_role')) || 'patient';
+  const role = user?.role || selectedRole || (typeof window !== 'undefined' && (window.localStorage.getItem('SmartCare-Connect_selected_role') || window.localStorage.getItem('selected_role'))) || 'patient';
 
   if (loading) {
     return null;
@@ -85,6 +85,7 @@ export function App() {
               <Route path="/login" element={<RequireLanguageSelection><Login /></RequireLanguageSelection>} />
               <Route path="/register" element={<RequireLanguageSelection><Register /></RequireLanguageSelection>} />
               <Route path="/role-selection" element={<RequireLanguageSelection><RoleSelectionPage /></RequireLanguageSelection>} />
+              <Route path="/onboarding" element={<RequireLanguageSelection><OnboardingPage /></RequireLanguageSelection>} />
               <Route path="/presenter" element={<AIVirtualPresenter />} />
               <Route path="/hospital-map" element={<HospitalMapPage />} />
               <Route path="/help-center" element={<HelpCenter />} />

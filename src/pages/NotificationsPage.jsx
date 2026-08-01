@@ -49,7 +49,8 @@ export default function NotificationsPage() {
         is_read: item.is_read ?? item.isRead ?? false,
         created_at: item.created_at || item.createdAt || new Date().toISOString(),
       })));
-      setUnread(data.unread || 0);
+      const unreadCount = typeof data.unread === 'number' ? data.unread : items.filter((item) => !item.is_read && !item.isRead).length;
+      setUnread(unreadCount);
     } catch {
       setNotifications([]);
       setUnread(0);

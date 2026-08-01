@@ -1,38 +1,173 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, AlertCircle, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Sparkles, Phone } from 'lucide-react';
+import { authApi } from '../services/api';
 import { motion } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PremiumButton } from '../components/ui/PremiumButton';
 
-const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+const baseSchema = z.object({
+  full_name: z.string().min(2, 'Full name is required'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirm_password: z.string().min(6, 'Please confirm your password'),
+  phone: z.string().min(10, 'Phone must be at least 10 digits'),
+});
+
+const patientSchema = baseSchema.extend({
+  blood_group: z.string().optional(),
+  address: z.string().optional(),
+  dob: z.string().optional(),
+  gender: z.string().optional(),
+  emergency_contact: z.string().optional(),
+  otp: z.string().optional(),
+});
+
+const doctorSchema = baseSchema.extend({
+  medical_reg_number: z.string().min(2, 'Registration number required'),
+  specialization: z.string().min(2, 'Specialization required'),
+  department: z.string().optional(),
+  experience: z.number().int().min(0).optional(),
+  hospital_id: z.string().optional(),
+});
+
+const hrSchema = baseSchema.extend({
+  employee_id: z.string().min(1, 'Employee ID required'),
+  department: z.string().optional(),
+  designation: z.string().optional(),
+});
+
+const traineeSchema = baseSchema.extend({
+  college_name: z.string().optional(),
+  department: z.string().optional(),
+  supervisor: z.string().optional(),
+  year: z.string().optional(),
 });
 
 export default function Register() {
   const navigate = useNavigate();
   const { register: registerAuth } = useAuth();
   const [error, setError] = useState('');
-  
-  const { register: registerField, handleSubmit, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(registerSchema)
+  const [role, setRole] = useState('patient');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const {
+    register: registerField,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(baseSchema)
   });
 
   const onSubmit = async (data) => {
     try {
       setError('');
-      await registerAuth(data);
-      navigate('/');
+      // ensure passwords match
+      if (data.password !== data.confirm_password) {
+        setError('Passwords do not match');
+        return;
+      }
+
+      // For patient, require OTP verification via backend
+      if (role === 'patient') {
+        if (!otpVerified) {
+          setError('Please verify phone via OTP before registering');
+          return;
+        }
+      }
+
+      const payload = {
+        full_name: data.full_name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        role,
+      };
+
+      if (role === 'patient') {
+        payload.blood_group = data.blood_group || '';
+        payload.address = data.address || '';
+        payload.dob = data.dob || '';
+        payload.gender = data.gender || '';
+        payload.emergency_contact = data.emergency_contact || '';
+      } else if (role === 'doctor') {
+        payload.medical_reg_number = data.medical_reg_number || '';
+        payload.specialization = data.specialization || '';
+        payload.department = data.department || '';
+        payload.experience = data.experience || 0;
+        payload.hospital_id = data.hospital_id || '';
+      } else if (role === 'hr') {
+        payload.employee_id = data.employee_id || '';
+        payload.department = data.department || '';
+        payload.designation = data.designation || '';
+      } else if (role === 'trainee') {
+        payload.college_name = data.college_name || '';
+        payload.department = data.department || '';
+        payload.supervisor = data.supervisor || '';
+        payload.year = data.year || '';
+      }
+
+      await registerAuth(payload);
+      navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+      setError(err.response?.data?.detail || err.message || 'Registration failed. Please try again.');
     }
   };
+
+  const sendOtp = async () => {
+    const phone = watch('phone');
+    setOtpError('');
+    setOtpMessage('');
+    if (!phone || phone.length < 10) {
+      setOtpError('Enter a valid phone number before requesting OTP.');
+      return;
+    }
+
+    try {
+      await authApi.sendOtp({ phone });
+      setOtpSent(true);
+      setOtpVerified(false);
+      setOtpMessage('OTP sent to your phone number.');
+    } catch (err) {
+      setOtpError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
+    }
+  };
+
+  const verifyOtp = async () => {
+    const phone = watch('phone');
+    const data = watch('otp');
+    setOtpError('');
+    setOtpMessage('');
+    if (!phone || !data) {
+      setOtpError('Enter phone and OTP to verify.');
+      return;
+    }
+
+    try {
+      await authApi.verifyOtp({ phone, otp: data });
+      setOtpVerified(true);
+      setOtpMessage('Phone verified successfully.');
+    } catch (err) {
+      setOtpError(err.response?.data?.detail || err.response?.data?.message || 'Invalid OTP.');
+      setOtpVerified(false);
+    }
+  };
+
+  useEffect(() => {
+    // clear errors when role changes
+    setError('');
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpMessage('');
+    setOtpError('');
+  }, [role]);
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center relative overflow-hidden px-4">
@@ -90,6 +225,16 @@ export default function Register() {
             )}
 
             <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-900 ml-1">Select Role</label>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setRole('patient')} className={`px-3 py-2 rounded-lg ${role==='patient'?'bg-brand-500 text-white':'bg-white/50'}`}>Patient</button>
+                <button type="button" onClick={() => setRole('doctor')} className={`px-3 py-2 rounded-lg ${role==='doctor'?'bg-brand-500 text-white':'bg-white/50'}`}>Doctor</button>
+                <button type="button" onClick={() => setRole('hr')} className={`px-3 py-2 rounded-lg ${role==='hr'?'bg-brand-500 text-white':'bg-white/50'}`}>HR</button>
+                <button type="button" onClick={() => setRole('trainee')} className={`px-3 py-2 rounded-lg ${role==='trainee'?'bg-brand-500 text-white':'bg-white/50'}`}>Trainee</button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-900 ml-1">Full Name</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -97,12 +242,12 @@ export default function Register() {
                 </div>
                 <input
                   type="text"
-                  {...registerField('name')}
+                  {...registerField('full_name')}
                   className="block w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl text-slate-900 placeholder:text-slate-500 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
                   placeholder="John Doe"
                 />
               </div>
-              {errors.name && <p className="text-xs text-red-500 font-medium ml-1 mt-1">{errors.name.message}</p>}
+              {errors.full_name && <p className="text-xs text-red-500 font-medium ml-1 mt-1">{errors.full_name.message}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -136,6 +281,132 @@ export default function Register() {
               </div>
               {errors.password && <p className="text-xs text-red-500 font-medium ml-1 mt-1">{errors.password.message}</p>}
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-900 ml-1">Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-slate-500" />
+                </div>
+                <input
+                  type="password"
+                  {...registerField('confirm_password')}
+                  className="block w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl text-slate-900 placeholder:text-slate-500 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
+                  placeholder="••••••••"
+                />
+              </div>
+              {errors.confirm_password && <p className="text-xs text-red-500 font-medium ml-1 mt-1">{errors.confirm_password.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-900 ml-1">Phone Number</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Phone className="h-5 w-5 text-slate-500" />
+                </div>
+                <input
+                  type="tel"
+                  {...registerField('phone')}
+                  className="block w-full pl-11 pr-28 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl text-slate-900 placeholder:text-slate-500 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none"
+                  placeholder="+91 98xxxxxxx"
+                />
+                {role === 'patient' && (
+                  <button type="button" onClick={sendOtp} className="absolute right-2 top-2 px-3 py-2 rounded-xl bg-brand-500 text-white">{otpSent ? 'Resend OTP' : 'Send OTP'}</button>
+                )}
+              </div>
+              {errors.phone && <p className="text-xs text-red-500 font-medium ml-1 mt-1">{errors.phone.message}</p>}
+            </div>
+
+            {role === 'patient' && otpSent && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-900 ml-1">Enter OTP</label>
+                <div className="relative">
+                  <input type="text" {...registerField('otp')} className="block w-full pr-28 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl text-slate-900 placeholder:text-slate-500" placeholder="123456" />
+                  <button type="button" onClick={verifyOtp} className="absolute right-2 top-2 px-3 py-2 rounded-xl bg-brand-500 text-white">Verify</button>
+                </div>
+                {otpError && <p className="text-xs text-red-500 font-medium ml-1 mt-1">{otpError}</p>}
+                {otpMessage && <p className="text-xs text-emerald-600 font-medium ml-1 mt-1">{otpMessage}</p>}
+              </div>
+            )}
+
+            {/* Role-specific extra fields */}
+            {role === 'patient' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-900 ml-1">Blood Group</label>
+                    <input type="text" {...registerField('blood_group')} className="block w-full mt-1 p-3 rounded-xl border" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-900 ml-1">Gender</label>
+                    <input type="text" {...registerField('gender')} className="block w-full mt-1 p-3 rounded-xl border" />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Date of Birth</label>
+                  <input type="date" {...registerField('dob')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Emergency Contact</label>
+                  <input type="text" {...registerField('emergency_contact')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Address</label>
+                  <input type="text" {...registerField('address')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+              </>
+            )}
+
+            {role === 'doctor' && (
+              <>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Medical Registration Number</label>
+                  <input type="text" {...registerField('medical_reg_number')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Specialization</label>
+                  <input type="text" {...registerField('specialization')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <input type="text" {...registerField('department')} placeholder="Department" className="p-3 rounded-xl border" />
+                  <input type="number" {...registerField('experience')} placeholder="Years experience" className="p-3 rounded-xl border" />
+                </div>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Hospital ID</label>
+                  <input type="text" {...registerField('hospital_id')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+              </>
+            )}
+
+            {role === 'hr' && (
+              <>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Employee ID</label>
+                  <input type="text" {...registerField('employee_id')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <input type="text" {...registerField('department')} placeholder="Department" className="p-3 rounded-xl border" />
+                  <input type="text" {...registerField('designation')} placeholder="Designation" className="p-3 rounded-xl border" />
+                </div>
+              </>
+            )}
+
+            {role === 'trainee' && (
+              <>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">College Name</label>
+                  <input type="text" {...registerField('college_name')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <input type="text" {...registerField('department')} placeholder="Department" className="p-3 rounded-xl border" />
+                  <input type="text" {...registerField('supervisor')} placeholder="Supervisor" className="p-3 rounded-xl border" />
+                </div>
+                <div className="mt-3">
+                  <label className="text-sm font-semibold text-slate-900 ml-1">Year</label>
+                  <input type="text" {...registerField('year')} className="block w-full mt-1 p-3 rounded-xl border" />
+                </div>
+              </>
+            )}
 
             <PremiumButton 
               type="submit" 

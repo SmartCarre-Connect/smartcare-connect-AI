@@ -39,14 +39,6 @@ const formatDate = (d) => {
   return dt.toLocaleString('en-IN', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
 
-const DEMO_HISTORY = Array.from({ length: 10 }, (_, i) => ({
-  id: `v${i}`,
-  heart_rate: Math.floor(68 + Math.sin(i * 0.8) * 12 + Math.random() * 5),
-  blood_pressure: `${Math.floor(115 + Math.random() * 10)}/${Math.floor(72 + Math.random() * 8)}`,
-  temperature: parseFloat((36.5 + Math.sin(i * 0.5) * 0.4 + Math.random() * 0.2).toFixed(1)),
-  oxygen: Math.floor(96 + Math.random() * 3),
-  recorded_at: new Date(Date.now() - (9 - i) * 3 * 3600000).toISOString(),
-})).reverse();
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -78,11 +70,11 @@ export default function VitalsTrackerPage() {
       const res = await vitalsApi.getHistory();
       const data = res.data?.data || res.data || {};
       const vitals = data.vitals || [];
-      setHistory(vitals.length > 0 ? vitals : DEMO_HISTORY);
-      setLatest(data.latest || (vitals.length > 0 ? vitals[0] : DEMO_HISTORY[0]));
+      setHistory(vitals);
+      setLatest(data.latest || (vitals.length > 0 ? vitals[0] : null));
     } catch {
-      setHistory(DEMO_HISTORY);
-      setLatest(DEMO_HISTORY[0]);
+      setHistory([]);
+      setLatest(null);
     } finally {
       setLoading(false);
     }
@@ -238,82 +230,94 @@ export default function VitalsTrackerPage() {
             </div>
           </motion.div>
 
-          {/* Trend Chart */}
-          <motion.div variants={itemVariants}>
-            <GlassCard className="p-6">
-              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <TrendingUp size={20} className="text-brand-500" />
-                  Vitals Trend
-                </h3>
-                <div className="flex gap-2">
-                  {Object.entries(CHART_CONFIGS).map(([key, cfg]) => (
-                    <button
-                      key={key}
-                      onClick={() => setActiveChart(key)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        activeChart === key
-                          ? 'bg-slate-900 text-white'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      }`}
-                    >
-                      {cfg.label}
-                    </button>
-                  ))}
-                </div>
+          {history.length === 0 ? (
+            <GlassCard className="p-16 text-center">
+              <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
+                <Activity size={32} className="text-slate-400" />
               </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={chartData} margin={{ top: 4, right: 8, left: -24, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                  <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey={activeChart}
-                    stroke={CHART_CONFIGS[activeChart].color}
-                    strokeWidth={2.5}
-                    dot={{ r: 3, fill: CHART_CONFIGS[activeChart].color, strokeWidth: 0 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <h3 className="text-lg font-bold text-slate-700">No vitals recorded yet</h3>
+              <p className="text-sm text-slate-400 mt-2">Use the Log Vitals button to add your first reading.</p>
             </GlassCard>
-          </motion.div>
+          ) : (
+            <>
+              {/* Trend Chart */}
+              <motion.div variants={itemVariants}>
+                <GlassCard className="p-6">
+                  <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <TrendingUp size={20} className="text-brand-500" />
+                      Vitals Trend
+                    </h3>
+                    <div className="flex gap-2">
+                      {Object.entries(CHART_CONFIGS).map(([key, cfg]) => (
+                        <button
+                          key={key}
+                          onClick={() => setActiveChart(key)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            activeChart === key
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          }`}
+                        >
+                          {cfg.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={chartData} margin={{ top: 4, right: 8, left: -24, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line
+                        type="monotone"
+                        dataKey={activeChart}
+                        stroke={CHART_CONFIGS[activeChart].color}
+                        strokeWidth={2.5}
+                        dot={{ r: 3, fill: CHART_CONFIGS[activeChart].color, strokeWidth: 0 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </GlassCard>
+              </motion.div>
 
-          {/* History Table */}
-          <motion.div variants={itemVariants}>
-            <GlassCard className="p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
-                <Clock size={20} className="text-slate-400" />
-                Reading History
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="pb-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Time</th>
-                      <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">HR (BPM)</th>
-                      <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">BP</th>
-                      <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Temp (°C)</th>
-                      <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">SpO₂ (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {history.slice(0, 10).map((v, idx) => (
-                      <tr key={v._id || v.id || idx} className={`hover:bg-slate-50 transition-colors ${idx === 0 ? 'bg-brand-50/30' : ''}`}>
-                        <td className="py-3 text-slate-500 text-xs">{formatDate(v.recorded_at)}</td>
-                        <td className="py-3 text-center font-bold text-slate-800">{v.heart_rate ?? '—'}</td>
-                        <td className="py-3 text-center text-slate-600">{v.blood_pressure ?? '—'}</td>
-                        <td className="py-3 text-center text-slate-600">{v.temperature ?? '—'}</td>
-                        <td className="py-3 text-center text-slate-600">{v.oxygen != null ? `${v.oxygen}%` : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </GlassCard>
-          </motion.div>
+              {/* History Table */}
+              <motion.div variants={itemVariants}>
+                <GlassCard className="p-6">
+                  <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
+                    <Clock size={20} className="text-slate-400" />
+                    Reading History
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100">
+                          <th className="pb-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Time</th>
+                          <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">HR (BPM)</th>
+                          <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">BP</th>
+                          <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Temp (°C)</th>
+                          <th className="pb-3 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">SpO₂ (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {history.slice(0, 10).map((v, idx) => (
+                          <tr key={v._id || v.id || idx} className={`hover:bg-slate-50 transition-colors ${idx === 0 ? 'bg-brand-50/30' : ''}`}>
+                            <td className="py-3 text-slate-500 text-xs">{formatDate(v.recorded_at)}</td>
+                            <td className="py-3 text-center font-bold text-slate-800">{v.heart_rate ?? '—'}</td>
+                            <td className="py-3 text-center text-slate-600">{v.blood_pressure ?? '—'}</td>
+                            <td className="py-3 text-center text-slate-600">{v.temperature ?? '—'}</td>
+                            <td className="py-3 text-center text-slate-600">{v.oxygen != null ? `${v.oxygen}%` : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            </>
+          )}
         </motion.div>
       )}
 

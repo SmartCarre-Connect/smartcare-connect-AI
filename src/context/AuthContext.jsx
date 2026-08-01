@@ -79,8 +79,18 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const res = await authApi.register(userData);
-      localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-      setUser(res.data.user);
+      if (res.data?.access_token) {
+        localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
+        const registeredUser = {
+          id: res.data.user_id || 'new-user',
+          name: userData.full_name || userData.name || '',
+          email: userData.email,
+          role: res.data.role || userData.role || selectedRole,
+        };
+        setUser(registeredUser);
+        selectRole(registeredUser.role);
+        return res.data;
+      }
       return res.data;
     } catch (err) {
       const demo = {

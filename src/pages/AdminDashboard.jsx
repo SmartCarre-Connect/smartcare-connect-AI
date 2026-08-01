@@ -31,40 +31,38 @@ export const AdminDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-card rounded-2xl p-5 border border-slate-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Users</span>
+            <span className="text-xs font-semibold text-slate-500">Total Patients</span>
             <Users className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">{stats.user_statistics?.total_users}</div>
-          <div className="text-[11px] text-emerald-400 mt-1">+{stats.user_statistics?.new_signups_this_week} this week</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{stats.total_patients ?? 0}</div>
+          <div className="text-[11px] text-slate-500 mt-1">Patients in the system</div>
         </div>
 
         <div className="glass-card rounded-2xl p-5 border border-slate-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Lab & Prescription Uploads</span>
+            <span className="text-xs font-semibold text-slate-500">Total Doctors</span>
             <FileText className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">
-            {(stats.upload_analytics?.total_lab_reports || 0) + (stats.upload_analytics?.total_prescriptions || 0)}
-          </div>
-          <div className="text-[11px] text-slate-500 mt-1">Lab reports + Scans</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{stats.total_doctors ?? 0}</div>
+          <div className="text-[11px] text-slate-500 mt-1">Doctors registered</div>
         </div>
 
         <div className="glass-card rounded-2xl p-5 border border-slate-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Gemini 2.5 Flash Calls</span>
+            <span className="text-xs font-semibold text-slate-500">Today's Appointments</span>
             <Cpu className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 mt-2">{stats.ai_usage_statistics?.gemini_2_5_flash_calls}</div>
-          <div className="text-[11px] text-purple-400 mt-1">{stats.ai_usage_statistics?.total_ai_tokens_processed} Tokens</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-2">{stats.today_appointments ?? 0}</div>
+          <div className="text-[11px] text-purple-400 mt-1">Scheduled for today</div>
         </div>
 
         <div className="glass-card rounded-2xl p-5 border border-slate-800">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">AI Confidence Rating</span>
+            <span className="text-xs font-semibold text-slate-500">Pending Leaves</span>
             <Star className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl font-extrabold text-amber-400 mt-2">{stats.ai_usage_statistics?.ai_accuracy_confidence}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Avg latency: {stats.ai_usage_statistics?.avg_response_latency_ms}ms</div>
+          <div className="text-2xl font-extrabold text-amber-400 mt-2">{stats.pending_leaves ?? 0}</div>
+          <div className="text-[11px] text-slate-500 mt-1">Awaiting HR approval</div>
         </div>
       </div>
 

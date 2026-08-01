@@ -70,6 +70,7 @@ export interface MedicineItem {
 }
 
 export interface OpdSlip {
+  id?: string;
   tokenNumber: string;
   patientUhid: string;
   patientName: string;

@@ -28,12 +28,22 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
   const [reservedMedicines, setReservedMedicines] = useState<Record<string, boolean>>({});
   const [selectedMedicine, setSelectedMedicine] = useState<MedicineItem | null>(mockMedicines[0]);
 
-  const categories = ['All', 'Antibiotics', 'Analgesics', 'Cardiovascular', 'Antidiabetic', 'Respiratory', 'Gastric'];
+  const categories = useMemo(
+    () => ['All', ...Array.from(new Set(mockMedicines.map((med) => med.category)))],
+    []
+  );
+
+  const getAvailabilityText = (status: string) => {
+    if (status === 'in_stock') return 'Available';
+    if (status === 'low_stock') return 'Low stock';
+    return 'Out of stock';
+  };
 
   const filteredMedicines = mockMedicines.filter((med) => {
     const matchesSearch =
       med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      med.genericName.toLowerCase().includes(searchTerm.toLowerCase());
+      med.genericName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      med.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = categoryFilter === 'All' || med.category === categoryFilter;
     return matchesSearch && matchesCat;
   });
@@ -150,12 +160,16 @@ export const MedicineAvailability: React.FC<MedicineAvailabilityProps> = ({ curr
                 <p className="font-semibold text-slate-800">{selectedMedicineDetails.name}</p>
                 <p className="text-xs text-slate-500">{selectedMedicineDetails.genericName}</p>
               </div>
-              <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">{selectedMedicineDetails.status.replace('_',' ')}</div>
+              <div className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">{getAvailabilityText(selectedMedicineDetails.status)}</div>
             </div>
             <p className="text-xs leading-relaxed text-slate-600">{selectedMedicineDetails.description}</p>
             <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
               <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Dosage:</span> {selectedMedicineDetails.dosage}</div>
-              <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Nearby:</span> {selectedMedicineDetails.nearbyPharmacy}</div>
+              <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Quantity:</span> {selectedMedicineDetails.stockCount} units</div>
+            </div>
+            <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
+              <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Available at:</span> {selectedMedicineDetails.nearbyPharmacy}</div>
+              <div className="rounded-xl bg-white p-2"><span className="font-semibold text-slate-700">Alternative medicine:</span> {selectedMedicineDetails.substitutes.join(', ')}</div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
               <div className="flex items-center gap-2 font-semibold text-slate-700"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Hospital pharmacy stock</div>

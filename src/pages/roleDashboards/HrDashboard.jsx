@@ -2,18 +2,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { UsersRound, CalendarDays, ClipboardCheck, BadgeCheck, Clock3, BellRing, Megaphone, Search, FileBarChart2, Settings, Building2 } from 'lucide-react';
 import { GlassCard } from '../../components/ui/GlassCard';
+import { useNavigate } from 'react-router-dom';
 
 const cards = [
-  { title: 'Manage Trainees', description: 'Oversee trainee assignments, departments, and status.', icon: UsersRound },
-  { title: 'Manage Schedules', description: 'Create and adjust staff duty schedules.', icon: CalendarDays },
-  { title: 'Attendance Reports', description: 'Monitor attendance trends and compliance.', icon: ClipboardCheck },
-  { title: 'Approve Leave', description: 'Review and approve leave requests quickly.', icon: BadgeCheck },
-  { title: 'Create Schedule', description: 'Build new duty and shift schedules.', icon: Clock3 },
-  { title: 'Send Announcement', description: 'Notify staff of updates and events.', icon: Megaphone },
-  { title: 'Search Staff', description: 'Find staff members quickly.', icon: Search },
-  { title: 'Reports', description: 'Review weekly and monthly operations.', icon: FileBarChart2 },
-  { title: 'Notifications', description: 'Receive and dispatch HR activity.', icon: BellRing },
-  { title: 'Settings', description: 'Configure HR preferences and access.', icon: Settings },
+  { title: 'Manage Trainees', description: 'Oversee trainee assignments, departments, and status.', icon: UsersRound, path: '/attendance' },
+  { title: 'Manage Schedules', description: 'Create and adjust staff duty schedules.', icon: CalendarDays, path: '/appointments' },
+  { title: 'Attendance Reports', description: 'Monitor attendance trends and compliance.', icon: ClipboardCheck, path: '/vitals' },
+  { title: 'Approve Leave', description: 'Review and approve leave requests quickly.', icon: BadgeCheck, path: '/profile' },
+  { title: 'Create Schedule', description: 'Build new duty and shift schedules.', icon: Clock3, path: '/appointments' },
+  { title: 'Send Announcement', description: 'Notify staff of updates and events.', icon: Megaphone, path: '/notifications' },
+  { title: 'Search Staff', description: 'Find staff members quickly.', icon: Search, path: '/doctors' },
+  { title: 'Reports', description: 'Review weekly and monthly operations.', icon: FileBarChart2, path: '/vitals' },
+  { title: 'Notifications', description: 'Receive and dispatch HR activity.', icon: BellRing, path: '/notifications' },
+  { title: 'Settings', description: 'Configure HR preferences and access.', icon: Settings, path: '/profile' },
 ];
 
 const requests = [
@@ -22,6 +23,9 @@ const requests = [
 ];
 
 export default function HrDashboard() {
+  const navigate = useNavigate();
+  const go = (p) => { if (p) navigate(p); };
+
   return (
     <div className="pb-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-glass backdrop-blur-xl">
@@ -37,13 +41,15 @@ export default function HrDashboard() {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <GlassCard key={card.title} className="!p-6">
-              <div className="inline-flex rounded-2xl bg-blue-50 p-3 text-blue-600">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h2 className="mt-4 text-lg font-semibold text-slate-900">{card.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
-            </GlassCard>
+            <div key={card.title} className="cursor-pointer" onClick={() => go(card.path)}>
+              <GlassCard className="!p-6">
+                <div className="inline-flex rounded-2xl bg-blue-50 p-3 text-blue-600">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h2 className="mt-4 text-lg font-semibold text-slate-900">{card.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
+              </GlassCard>
+            </div>
           );
         })}
       </div>

@@ -2,16 +2,17 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CalendarClock, Users, FileText, Pill, Microscope, Bot, Bell, Activity, Stethoscope } from 'lucide-react';
 import { GlassCard } from '../../components/ui/GlassCard';
+import { useNavigate } from 'react-router-dom';
 
 const cards = [
-  { title: "Today's Appointments", description: 'Review scheduled consultations and follow-up visits.', icon: CalendarClock },
-  { title: 'Patient Queue', description: 'Monitor active and upcoming patients in the OPD.', icon: Users },
-  { title: 'Medical Records', description: 'Access patient history, diagnoses, and clinical notes.', icon: FileText },
-  { title: 'Digital Prescription', description: 'Create and send e-prescriptions to pharmacy instantly.', icon: Pill },
-  { title: 'Lab Requests', description: 'Review lab tests, imaging cases, and case notes.', icon: Microscope },
-  { title: 'AI Clinical Assistant', description: 'Summarize symptoms and support care planning.', icon: Bot },
-  { title: 'Notifications', description: 'Stay aligned with ward updates and urgent alerts.', icon: Bell },
-  { title: 'Availability Status', description: 'Manage your online presence and consultation mode.', icon: Activity },
+  { title: "Today's Appointments", description: 'Review scheduled consultations and follow-up visits.', icon: CalendarClock, path: '/appointments' },
+  { title: 'Patient Queue', description: 'Monitor active and upcoming patients in the OPD.', icon: Users, path: '/doctors' },
+  { title: 'Medical Records', description: 'Access patient history, diagnoses, and clinical notes.', icon: FileText, path: '/reports' },
+  { title: 'Digital Prescription', description: 'Create and send e-prescriptions to pharmacy instantly.', icon: Pill, path: '/prescriptions' },
+  { title: 'Lab Requests', description: 'Review lab tests, imaging cases, and case notes.', icon: Microscope, path: '/medical-images' },
+  { title: 'AI Clinical Assistant', description: 'Summarize symptoms and support care planning.', icon: Bot, path: '/doctor-copilot' },
+  { title: 'Notifications', description: 'Stay aligned with ward updates and urgent alerts.', icon: Bell, path: '/notifications' },
+  { title: 'Availability Status', description: 'Manage your online presence and consultation mode.', icon: Activity, path: '/profile' },
 ];
 
 const queue = [
@@ -21,6 +22,9 @@ const queue = [
 ];
 
 export default function DoctorDashboard() {
+  const navigate = useNavigate();
+  const go = (p) => { if (p) navigate(p); };
+
   return (
     <div className="pb-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-glass backdrop-blur-xl">
@@ -36,13 +40,15 @@ export default function DoctorDashboard() {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <GlassCard key={card.title} className="!p-6">
-              <div className="inline-flex rounded-2xl bg-violet-50 p-3 text-violet-600">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h2 className="mt-4 text-lg font-semibold text-slate-900">{card.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
-            </GlassCard>
+            <div key={card.title} className="cursor-pointer" onClick={() => go(card.path)}>
+              <GlassCard className="!p-6">
+                <div className="inline-flex rounded-2xl bg-violet-50 p-3 text-violet-600">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h2 className="mt-4 text-lg font-semibold text-slate-900">{card.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
+              </GlassCard>
+            </div>
           );
         })}
       </div>
@@ -73,10 +79,10 @@ export default function DoctorDashboard() {
 
         <GlassCard className="!p-6">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Quick Actions</p>
-          <div className="mt-4 space-y-3">
-            <button className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700">Review Lab Reports</button>
-            <button className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700">Create Prescription</button>
-            <button className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700">Send Care Note</button>
+            <div className="mt-4 space-y-3">
+            <button onClick={() => go('/reports')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700">Review Lab Reports</button>
+            <button onClick={() => go('/prescriptions')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700">Create Prescription</button>
+            <button onClick={() => go('/chat')} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-sm font-semibold text-slate-700">Send Care Note</button>
           </div>
         </GlassCard>
       </div>

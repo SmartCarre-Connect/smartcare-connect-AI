@@ -302,10 +302,11 @@ export const mockAnnouncements: AnnouncementItem[] = [
 ];
 
 export const mockNavigationDestinations: NavigationDestination[] = [
-  { id: 'nav-1', name: 'OPD', floor: 'First Floor', route: 'Reception → Lift A → Corridor 2', time: '4 mins', accessible: true },
-  { id: 'nav-2', name: 'Emergency', floor: 'Ground Floor', route: 'Main Gate → Ramp → Emergency Entrance', time: '2 mins', accessible: true },
+  { id: 'nav-1', name: 'Departments', floor: 'First Floor', route: 'Reception → Central Atrium → Department Corridor', time: '5 mins', accessible: true },
+  { id: 'nav-2', name: 'OPD', floor: 'First Floor', route: 'Reception → Lift A → Corridor 2', time: '4 mins', accessible: true },
   { id: 'nav-3', name: 'Pharmacy', floor: 'Ground Floor', route: 'Main Atrium → Right Wing → Pharmacy Counter', time: '3 mins', accessible: true },
-  { id: 'nav-4', name: 'Radiology', floor: 'Second Floor', route: 'Lift B → Radiology Wing', time: '6 mins', accessible: false },
+  { id: 'nav-4', name: 'Emergency', floor: 'Ground Floor', route: 'Main Gate → Ramp → Emergency Entrance', time: '2 mins', accessible: true },
+  { id: 'nav-5', name: 'Labs', floor: 'Second Floor', route: 'Lift B → Diagnostics Wing → Lab Reception', time: '6 mins', accessible: true },
 ];
 
 export const walkthroughSteps: WalkthroughStep[] = [

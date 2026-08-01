@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { appointmentsApi, doctorsApi } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -10,29 +11,14 @@ import {
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  Booked:    { color: 'bg-blue-50 text-blue-700 border-blue-100', dot: 'bg-blue-500', icon: Clock },
-  Confirmed: { color: 'bg-emerald-50 text-emerald-700 border-emerald-100', dot: 'bg-emerald-500', icon: CheckCircle },
-  Completed: { color: 'bg-slate-50 text-slate-600 border-slate-100', dot: 'bg-slate-400', icon: CheckCircle },
-  Cancelled: { color: 'bg-red-50 text-red-600 border-red-100', dot: 'bg-red-400', icon: XCircle },
+  booked:    { color: 'bg-blue-50 text-blue-700 border-blue-100', dot: 'bg-blue-500', icon: Clock, label: 'Booked' },
+  confirmed: { color: 'bg-emerald-50 text-emerald-700 border-emerald-100', dot: 'bg-emerald-500', icon: CheckCircle, label: 'Confirmed' },
+  completed: { color: 'bg-slate-50 text-slate-600 border-slate-100', dot: 'bg-slate-400', icon: CheckCircle, label: 'Completed' },
+  cancelled: { color: 'bg-red-50 text-red-600 border-red-100', dot: 'bg-red-400', icon: XCircle, label: 'Cancelled' },
 };
 
-const DEMO_APPOINTMENTS = [
-  {
-    id: 'a1', appointment_id: 'APT12345',
-    doctor_name: 'Dr. Sarah Wilson', specialization: 'Cardiologist',
-    appointment_date: '2026-07-30', time_slot: '10:00 AM', status: 'Confirmed', reason: 'Routine checkup',
-  },
-  {
-    id: 'a2', appointment_id: 'APT12346',
-    doctor_name: 'Dr. Michael Chen', specialization: 'General Physician',
-    appointment_date: '2026-08-05', time_slot: '02:30 PM', status: 'Booked', reason: 'Fever and cough',
-  },
-  {
-    id: 'a3', appointment_id: 'APT12340',
-    doctor_name: 'Dr. Priya Sharma', specialization: 'Dermatologist',
-    appointment_date: '2026-07-20', time_slot: '11:00 AM', status: 'Completed', reason: 'Skin consultation',
-  },
-];
+const normalizeStatus = (status) => String(status || '').trim().toLowerCase();
+
 
 const TIME_SLOTS = [
   '09:00 AM','09:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM',
@@ -45,14 +31,23 @@ export default function AppointmentsPage() {
   const [filter, setFilter] = useState('all');
   const [showBookModal, setShowBookModal] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
+  const [preSelectDoctor, setPreSelectDoctor] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.preSelectDoctor) {
+      setPreSelectDoctor(location.state.preSelectDoctor);
+      setShowBookModal(true);
+    }
+  }, [location.state]);
 
   const fetchAppointments = useCallback(async () => {
     try {
       const res = await appointmentsApi.list();
-      const data = res.data?.data || res.data || {};
-      setAppointments(data.appointments || data || []);
+      const payload = res.data;
+      setAppointments(Array.isArray(payload) ? payload : payload.appointments || []);
     } catch {
-      setAppointments(DEMO_APPOINTMENTS);
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
@@ -65,12 +60,13 @@ export default function AppointmentsPage() {
     try {
       await appointmentsApi.cancel(appointmentId);
       setAppointments(prev =>
-        prev.map(a => a.appointment_id === appointmentId ? { ...a, status: 'Cancelled' } : a)
+        prev.map(a => {
+          const id = a.appointment_id || a.id;
+          return id === appointmentId ? { ...a, status: 'Cancelled' } : a;
+        })
       );
     } catch {
-      setAppointments(prev =>
-        prev.map(a => a.appointment_id === appointmentId ? { ...a, status: 'Cancelled' } : a)
-      );
+      // Cancel failed, keep the existing appointment state.
     } finally {
       setCancellingId(null);
     }
@@ -82,8 +78,9 @@ export default function AppointmentsPage() {
   };
 
   const filtered = appointments.filter(a => {
-    if (filter === 'upcoming') return ['Booked', 'Confirmed'].includes(a.status);
-    if (filter === 'past') return ['Completed', 'Cancelled'].includes(a.status);
+    const status = normalizeStatus(a.status);
+    if (filter === 'upcoming') return ['booked', 'confirmed'].includes(status);
+    if (filter === 'past') return ['completed', 'cancelled'].includes(status);
     return true;
   });
 
@@ -139,9 +136,10 @@ export default function AppointmentsPage() {
       ) : (
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-4">
           {filtered.map((appt) => {
-            const id = appt._id || appt.id;
-            const statusCfg = STATUS_CONFIG[appt.status] || STATUS_CONFIG.Booked;
-            const canCancel = ['Booked', 'Confirmed'].includes(appt.status);
+            const id = appt._id || appt.id || appt.appointment_id;
+            const status = normalizeStatus(appt.status);
+            const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG.booked;
+            const canCancel = ['booked', 'confirmed'].includes(status);
             return (
               <motion.div key={id} variants={itemVariants}>
                 <GlassCard className="p-6 flex flex-col sm:flex-row sm:items-center gap-5">
@@ -153,13 +151,13 @@ export default function AppointmentsPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap mb-1">
-                      <h3 className="text-base font-bold text-slate-900">
-                        {appt.doctor_name || 'Doctor'}
-                      </h3>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${statusCfg.color}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
-                        {appt.status}
-                      </span>
+                              <h3 className="text-base font-bold text-slate-900">
+                      {appt.doctor_name || 'Doctor'}
+                    </h3>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${statusCfg.color}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                      {statusCfg.label}
+                    </span>
                     </div>
                     {appt.specialization && (
                       <p className="text-sm text-brand-600 font-medium mb-2">{appt.specialization}</p>
@@ -184,8 +182,8 @@ export default function AppointmentsPage() {
                   {/* Actions */}
                   {canCancel && (
                     <button
-                      onClick={() => handleCancel(appt.appointment_id)}
-                      disabled={cancellingId === appt.appointment_id}
+                      onClick={() => handleCancel(appt.appointment_id || appt.id)}
+                      disabled={cancellingId === (appt.appointment_id || appt.id)}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-all disabled:opacity-50 shrink-0"
                     >
                       {cancellingId === appt.appointment_id ? (
@@ -209,6 +207,7 @@ export default function AppointmentsPage() {
           <BookAppointmentModal
             onClose={() => setShowBookModal(false)}
             onSuccess={onBookSuccess}
+            preselectedDoctor={preSelectDoctor}
           />
         )}
       </AnimatePresence>
@@ -218,23 +217,29 @@ export default function AppointmentsPage() {
 
 // ─── Book Appointment Modal ─────────────────────────────────────────────────
 
-function BookAppointmentModal({ onClose, onSuccess }) {
+function BookAppointmentModal({ onClose, onSuccess, preselectedDoctor }) {
   const [doctors, setDoctors] = useState([]);
   const [search, setSearch] = useState('');
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState(preselectedDoctor || null);
   const [form, setForm] = useState({ appointment_date: '', time_slot: '', reason: '' });
   const [loading, setLoading] = useState(false);
   const [doctorsLoading, setDoctorsLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (preselectedDoctor) {
+      setSelectedDoctor(preselectedDoctor);
+    }
+  }, [preselectedDoctor]);
+
+  useEffect(() => {
     const load = async () => {
       try {
         const res = await doctorsApi.list();
-        const data = res.data?.data || res.data || {};
-        setDoctors(data.doctors || DEMO_DOCTORS);
+        const payload = res.data;
+        setDoctors(Array.isArray(payload) ? payload : payload.doctors || []);
       } catch {
-        setDoctors(DEMO_DOCTORS);
+        setDoctors([]);
       } finally {
         setDoctorsLoading(false);
       }
@@ -263,15 +268,16 @@ function BookAppointmentModal({ onClose, onSuccess }) {
         time_slot: form.time_slot,
         reason: form.reason,
       });
+      const data = res.data || {};
       onSuccess({
-        id: res.data?.data?.id || Math.random().toString(),
-        appointment_id: res.data?.data?.appointment_id || 'APT' + Math.floor(Math.random() * 90000 + 10000),
-        doctor_name: selectedDoctor.full_name,
-        specialization: selectedDoctor.specialization,
-        appointment_date: form.appointment_date,
-        time_slot: form.time_slot,
-        reason: form.reason,
-        status: 'Booked',
+        id: data._id || data.id || Math.random().toString(),
+        appointment_id: data.appointment_id || data.id || 'APT' + Math.floor(Math.random() * 90000 + 10000),
+        doctor_name: selectedDoctor.full_name || data.doctor_name,
+        specialization: selectedDoctor.specialization || data.specialization,
+        appointment_date: data.appointment_date || form.appointment_date,
+        time_slot: data.time_slot || form.time_slot,
+        reason: data.reason || form.reason,
+        status: data.status || 'Booked',
       });
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to book appointment. Please try again.');
@@ -423,10 +429,3 @@ function BookAppointmentModal({ onClose, onSuccess }) {
   );
 }
 
-const DEMO_DOCTORS = [
-  { id: 'd1', full_name: 'Dr. Sarah Wilson', specialization: 'Cardiologist', experience: 12, consultation_fee: 800 },
-  { id: 'd2', full_name: 'Dr. Michael Chen', specialization: 'General Physician', experience: 8, consultation_fee: 500 },
-  { id: 'd3', full_name: 'Dr. Priya Sharma', specialization: 'Dermatologist', experience: 6, consultation_fee: 600 },
-  { id: 'd4', full_name: 'Dr. Raj Patel', specialization: 'Orthopedic Surgeon', experience: 15, consultation_fee: 900 },
-  { id: 'd5', full_name: 'Dr. Aisha Khan', specialization: 'Pediatrician', experience: 10, consultation_fee: 550 },
-];

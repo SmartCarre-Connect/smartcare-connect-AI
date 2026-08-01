@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
 from app.database.mongodb import get_database
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
-from app.schemas.schemas import RegisterRequest, LoginRequest, TokenResponse, RefreshRequest
+from app.schemas.schemas import RegisterRequest, LoginRequest, TokenResponse, RefreshRequest, SendOTPRequest, VerifyOTPRequest
 from app.utils.helpers import success_response, error_response, serialize_doc
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from loguru import logger
 import random
 
@@ -48,15 +48,17 @@ async def register(request: RegisterRequest):
         patient_doc = {
             "user_id": result.inserted_id,
             "patient_id": generate_id("PAT"),
-            "dob": "",
-            "gender": "",
-            "blood_group": "",
+            "full_name": request.full_name,
+            "dob": request.dob or "",
+            "gender": request.gender or "",
+            "blood_group": request.blood_group or "",
+            "address": request.address or "",
             "height": "",
             "weight": "",
             "allergies": [],
             "chronic_diseases": [],
             "insurance_id": None,
-            "emergency_contact": None,
+            "emergency_contact": request.emergency_contact or None,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.patients.insert_one(patient_doc)
@@ -64,16 +66,41 @@ async def register(request: RegisterRequest):
         doctor_doc = {
             "user_id": result.inserted_id,
             "doctor_id": generate_id("DOC"),
-            "department_id": None,
-            "specialization": "",
-            "experience": 0,
+            "full_name": request.full_name,
+            "medical_reg_number": request.medical_reg_number or "",
+            "department_id": request.department or None,
+            "specialization": request.specialization or "",
+            "experience": request.experience or 0,
             "qualification": "",
             "consultation_fee": 500,
             "availability": [],
             "rating": 0.0,
+            "hospital_id": request.hospital_id or None,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.doctors.insert_one(doctor_doc)
+    elif request.role.value == "hr":
+        hr_doc = {
+            "user_id": result.inserted_id,
+            "employee_id": request.employee_id or generate_id("EMP"),
+            "employee_name": request.full_name,
+            "department": request.department or "",
+            "designation": request.designation or "",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.hrs.insert_one(hr_doc)
+    elif request.role.value == "trainee":
+        trainee_doc = {
+            "user_id": result.inserted_id,
+            "trainee_id": generate_id("TRN"),
+            "full_name": request.full_name,
+            "college_name": request.college_name or "",
+            "department": request.department or "",
+            "supervisor": request.supervisor or "",
+            "year": request.year or "",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.trainees.insert_one(trainee_doc)
 
     # Generate tokens
     token_data = {"sub": user_id, "role": request.role.value}
@@ -99,6 +126,56 @@ async def register(request: RegisterRequest):
         },
         message="Registration successful",
     )
+
+
+@router.post("/send-otp")
+async def send_otp(request: SendOTPRequest):
+    db = get_database()
+    otp = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+
+    await db.otp_codes.update_one(
+        {"phone": request.phone},
+        {
+            "$set": {
+                "otp": otp,
+                "expires_at": expires_at,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+        },
+        upsert=True,
+    )
+
+    # Ensure TTL index exists for expiry cleanup
+    await db.otp_codes.create_index("phone", unique=True)
+    await db.otp_codes.create_index("expires_at", expireAfterSeconds=0)
+
+    logger.info(f"OTP generated for phone: {request.phone}")
+    return success_response(
+        data={"phone": request.phone, "expires_at": expires_at.isoformat()},
+        message="OTP sent successfully",
+    )
+
+
+@router.post("/verify-otp")
+async def verify_otp(request: VerifyOTPRequest):
+    db = get_database()
+    otp_entry = await db.otp_codes.find_one({"phone": request.phone})
+    if not otp_entry:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    if otp_entry.get("otp") != request.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+
+    expires_at = otp_entry.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP expired")
+
+    await db.otp_codes.delete_one({"phone": request.phone})
+    logger.info(f"OTP verified for phone: {request.phone}")
+    return success_response(message="OTP verified successfully")
 
 
 @router.post("/login")

@@ -18,7 +18,10 @@ export default function RoleShell() {
   // Start onboarding automatically if user has not completed onboarding for their role
   React.useEffect(() => {
     try {
-      const completed = typeof window !== 'undefined' && window.localStorage.getItem(`smartcare-onboarding-complete:${user?.role}`) === 'true';
+      const completed = typeof window !== 'undefined' && (
+        window.localStorage.getItem(`smartcare-onboarding-complete:${user?.role}`) === 'true' ||
+        window.localStorage.getItem(`guide_completed_${user?.role}`) === 'true'
+      );
       if (!completed && onboarding && !onboarding.active && user?.role) {
         onboarding.start({ role: user.role, language: language });
       }

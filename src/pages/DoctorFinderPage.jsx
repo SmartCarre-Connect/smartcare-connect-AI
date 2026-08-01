@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { doctorsApi, appointmentsApi } from '../services/api';
+import { doctorsApi } from '../services/api';
 import { motion } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
-import { PremiumButton } from '../components/ui/PremiumButton';
 import {
   Stethoscope, Search, Star, Clock, Briefcase, Calendar,
-  Filter, ChevronRight, DollarSign, Award
+  Filter, Award
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,38 +14,6 @@ const SPECIALIZATIONS = [
   'Gynecologist', 'Ophthalmologist', 'ENT Specialist',
 ];
 
-const DEMO_DOCTORS = [
-  {
-    id: 'd1', full_name: 'Dr. Sarah Wilson', specialization: 'Cardiologist',
-    experience: 12, consultation_fee: 800, qualification: 'MBBS, MD (Cardiology)',
-    avg_rating: 4.8, total_reviews: 124, is_available: true,
-  },
-  {
-    id: 'd2', full_name: 'Dr. Michael Chen', specialization: 'General Physician',
-    experience: 8, consultation_fee: 500, qualification: 'MBBS, DNB',
-    avg_rating: 4.6, total_reviews: 89, is_available: true,
-  },
-  {
-    id: 'd3', full_name: 'Dr. Priya Sharma', specialization: 'Dermatologist',
-    experience: 6, consultation_fee: 600, qualification: 'MBBS, MD (Dermatology)',
-    avg_rating: 4.9, total_reviews: 203, is_available: true,
-  },
-  {
-    id: 'd4', full_name: 'Dr. Raj Patel', specialization: 'Orthopedic Surgeon',
-    experience: 15, consultation_fee: 900, qualification: 'MBBS, MS (Ortho)',
-    avg_rating: 4.7, total_reviews: 156, is_available: false,
-  },
-  {
-    id: 'd5', full_name: 'Dr. Aisha Khan', specialization: 'Pediatrician',
-    experience: 10, consultation_fee: 550, qualification: 'MBBS, DCH',
-    avg_rating: 4.9, total_reviews: 312, is_available: true,
-  },
-  {
-    id: 'd6', full_name: 'Dr. Robert James', specialization: 'Neurologist',
-    experience: 18, consultation_fee: 1200, qualification: 'MBBS, DM (Neurology)',
-    avg_rating: 4.5, total_reviews: 78, is_available: true,
-  },
-];
 
 export default function DoctorFinderPage() {
   const [doctors, setDoctors] = useState([]);
@@ -58,11 +25,11 @@ export default function DoctorFinderPage() {
   const fetchDoctors = useCallback(async () => {
     try {
       const res = await doctorsApi.list(selectedSpec === 'All' ? null : selectedSpec);
-      const data = res.data?.data || res.data || {};
-      const list = data.doctors || [];
-      setDoctors(list.length > 0 ? list : DEMO_DOCTORS);
+      const payload = res.data;
+      const list = Array.isArray(payload) ? payload : payload.doctors || [];
+      setDoctors(list);
     } catch {
-      setDoctors(DEMO_DOCTORS);
+      setDoctors([]);
     } finally {
       setLoading(false);
     }

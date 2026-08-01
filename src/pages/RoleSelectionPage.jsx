@@ -52,9 +52,11 @@ export default function RoleSelectionPage() {
 
   const handleContinue = () => {
     selectRole(selectedRole);
-    try { if (typeof window !== 'undefined') window.localStorage.setItem('selected_role', selectedRole); } catch (e) {}
 
-    const completed = typeof window !== 'undefined' && window.localStorage.getItem(`guide_completed_${selectedRole}`) === 'true';
+    const completed = typeof window !== 'undefined' && (
+      window.localStorage.getItem(`smartcare-onboarding-complete:${selectedRole}`) === 'true' ||
+      window.localStorage.getItem(`guide_completed_${selectedRole}`) === 'true'
+    );
 
     if (!completed) {
       navigate(`/onboarding?role=${selectedRole}`);

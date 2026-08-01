@@ -11,7 +11,7 @@ export const ChatHistoryPage = () => {
   const fetchSessions = async () => {
     try {
       const res = await chatApi.listSessions(search);
-      setSessions(res.data);
+      setSessions(res.data || []);
     } catch (err) {
       console.error(err);
     }
@@ -82,6 +82,7 @@ export const ChatHistoryPage = () => {
 
               <Link
                 to="/chat"
+                state={{ sessionId: s.chat_id }}
                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-glow"
               >
                 Continue Chat <ExternalLink className="w-3.5 h-3.5" />

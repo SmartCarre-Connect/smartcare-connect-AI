@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import { chatApi } from '../services/api';
 import { Send, Bot, User, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
-import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getFallbackAssistantReply } from '../utils/chatResponses';
 
@@ -16,6 +16,8 @@ const SUGGESTED_PROMPTS = [
 
 export default function RAGChat() {
   const { user } = useAuth();
+  const location = useLocation();
+  const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([
     { id: 1, role: 'assistant', text: `Hello ${user?.name || ''}! I'm TwinCare AI, your health companion. I've reviewed your latest reports and vitals. How can I help you today?` }
   ]);
@@ -26,6 +28,39 @@ export default function RAGChat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (location.state?.sessionId) {
+      setSessionId(location.state.sessionId);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const loadSession = async () => {
+      setLoading(true);
+      try {
+        const res = await chatApi.getSession(sessionId);
+        const payload = res.data || [];
+        const sessionMessages = Array.isArray(payload) ? payload : payload.messages || [];
+
+        if (sessionMessages.length > 0) {
+          setMessages(sessionMessages.map((msg, idx) => ({
+            id: msg.id || msg.message_id || idx,
+            role: msg.role || (msg.sender === 'user' ? 'user' : 'assistant'),
+            text: msg.text || msg.message || msg.content || '',
+          })));
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSession();
+  }, [sessionId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -40,16 +75,19 @@ export default function RAGChat() {
     setLoading(true);
 
     try {
-      const res = await chatApi.send(null, text);
+      const res = await chatApi.send(sessionId, text);
       const botText = res?.data?.content || res?.message || getFallbackAssistantReply(text);
       const botMsg = { id: Date.now() + 1, role: 'assistant', text: botText };
       setMessages(prev => [...prev, botMsg]);
+      if (!sessionId && res?.data?.session_id) {
+        setSessionId(res.data.session_id);
+      }
     } catch (err) {
-      setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        role: 'assistant', 
-        text: getFallbackAssistantReply(text)
-      }]);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'assistant',
+        text: getFallbackAssistantReply(text),
+      }] );
     } finally {
       setLoading(false);
     }

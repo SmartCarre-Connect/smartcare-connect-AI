@@ -14,7 +14,7 @@ export default function FloatingAssistant() {
       const roles = ['patient','doctor','trainee','hr','admin'];
       const found = roles.find((r) => window.localStorage.getItem(`smartcare-onboarding-complete:${r}`) === 'true');
       setVisible(Boolean(found));
-      const storedRole = window.localStorage.getItem('SmartCare-Connect_selected_role') || window.localStorage.getItem('selected_language');
+      const storedRole = window.localStorage.getItem('SmartCare-Connect_selected_role') || window.localStorage.getItem('selected_role') || 'patient';
       setRole(storedRole?.toLowerCase?.() || 'patient');
     } catch (e) {
       // ignore

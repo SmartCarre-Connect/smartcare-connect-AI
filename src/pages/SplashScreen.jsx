@@ -14,7 +14,7 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const languageSelected = typeof window !== 'undefined' && !!window.localStorage.getItem('selected_language');
-      const selectedRole = typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_selected_role');
+      const selectedRole = typeof window !== 'undefined' && (window.localStorage.getItem('SmartCare-Connect_selected_role') || window.localStorage.getItem('selected_role'));
 
       if (!languageSelected) {
         navigate('/language-selection', { replace: true });

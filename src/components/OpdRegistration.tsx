@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Language, OpdSlip, UserProfile } from '../types';
+import { Language, NavigationDestination, OpdSlip, UserProfile } from '../types';
 import { translations } from '../data/translations';
 import { appointmentsApi, doctorsApi } from '../services/api';
+import { mockNavigationDestinations } from '../data/mockData';
+import { QRCodeCanvas } from 'qrcode.react';
 import {
   FileText,
   QrCode,
@@ -19,6 +21,10 @@ import {
   BellRing,
   HeartPulse,
   X,
+  Pill,
+  Microscope,
+  Ambulance,
+  MapPin,
 } from 'lucide-react';
 
 interface OpdRegistrationProps {
@@ -52,6 +58,8 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
   const [recommendation, setRecommendation] = useState<{department: string; specialist: string; urgency: string; advice: string} | null>(null);
   const [selectedHospitalBranch, setSelectedHospitalBranch] = useState('SmartCare Central Hospital');
   const [doctors, setDoctors] = useState<any[]>([]);
+  const [selectedNavTarget, setSelectedNavTarget] = useState('OPD');
+  const [navSearch, setNavSearch] = useState('');
   const [loadingDoctors, setLoadingDoctors] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -78,6 +86,25 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
   }, [initialSelectedDoctorId]);
 
   useEffect(() => {
+    const loadAppointmentHistory = async () => {
+      try {
+        const response = await appointmentsApi.list();
+        const payload = response.data?.appointments || response.data || [];
+        const appointments = Array.isArray(payload) ? payload : payload.appointments || [];
+        const slips = appointments.map(convertAppointmentToSlip);
+        setSavedSlips(slips);
+        if (slips.length > 0) {
+          setActiveSlip(slips[0]);
+        }
+      } catch {
+        setSavedSlips([]);
+      }
+    };
+
+    loadAppointmentHistory();
+  }, []);
+
+  useEffect(() => {
     if (initialSelectedDoctorId) {
       setShowDoctorSelectionAlert(true);
     }
@@ -95,6 +122,49 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
     specialization: selectedDept,
     consultation_fee: 0,
     opd_room: 'Room TBD',
+  };
+
+  const availableNavigationDestinations: NavigationDestination[] = mockNavigationDestinations.filter((item) =>
+    item.name.toLowerCase().includes(navSearch.toLowerCase()) || item.route.toLowerCase().includes(navSearch.toLowerCase())
+  );
+
+  const selectedNavigation =
+    availableNavigationDestinations.find((item) => item.name === selectedNavTarget) ||
+    availableNavigationDestinations[0] ||
+    mockNavigationDestinations[0];
+
+  const convertAppointmentToSlip = (appointment: any): OpdSlip => {
+    const doctorName = appointment.doctor_name || appointment.doctorName || appointment.doctor?.full_name || 'Selected Specialist';
+    const appointmentDateValue = appointment.appointment_date || appointment.appointmentDate || appointmentDate;
+    const timeSlotValue = appointment.time_slot || appointment.timeSlot || appointment.appointmentTime || timeSlot;
+    const tokenNumberValue = appointment.token_number || appointment.tokenNumber || appointment.appointment_id || `OPD-${selectedDept.slice(0, 3).toUpperCase()}-${Math.floor(10 + Math.random() * 85)}`;
+    const patientUhidValue = appointment.patient_uhid || appointment.patientUhid || appointment.patientUhid || `UHID-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+    return {
+      id: appointment.id || appointment._id || appointment.appointment_id,
+      tokenNumber: tokenNumberValue,
+      patientUhid: patientUhidValue,
+      patientName: appointment.patient_name || appointment.patientName || patientName,
+      patientAge: appointment.patient_age || appointment.patientAge || Number(patientAge),
+      patientGender: appointment.patient_gender || appointment.patientGender || patientGender,
+      patientPhone: appointment.patient_phone || appointment.patientPhone || patientPhone,
+      bloodGroup: appointment.blood_group || appointment.bloodGroup || bloodGroup,
+      department: appointment.department || appointment.department_name || selectedDept,
+      doctorName,
+      opdRoom: appointment.opd_room || appointment.opdRoom || selectedDoctorObj.opd_room || selectedDoctorObj.opdRoom || 'Room TBD',
+      appointmentDate: appointmentDateValue,
+      timeSlot: timeSlotValue,
+      symptoms: appointment.reason || appointment.symptoms || symptoms,
+      scheme: appointment.scheme || appointment.scheme || scheme,
+      paymentStatus: appointment.payment_status || appointment.paymentStatus || (scheme.includes('Cash') ? 'paid' : 'covered_under_scheme'),
+      fee: appointment.fee ?? Number(selectedDoctorObj.consultation_fee || selectedDoctorObj.fee || 0),
+      qrCodeValue: appointment.qr_code_value || appointment.qrCodeValue || `https://smartcare.org/opd/verify?token=${tokenNumberValue}&uhid=${patientUhidValue}`,
+      createdTimestamp: appointment.created_timestamp || appointment.createdTimestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      registrationId: appointment.registration_id || appointment.registrationId || `REG-${Math.floor(1000 + Math.random() * 9000)}`,
+      opdNumber: appointment.opd_number || appointment.opdNumber || `OPD-${Math.floor(10000 + Math.random() * 90000)}`,
+      hospitalBranch: appointment.hospital_branch || appointment.hospitalBranch || selectedHospitalBranch,
+      appointmentTime: timeSlotValue,
+      status: (appointment.status || 'confirmed').toString().toLowerCase() as any,
+    };
   };
 
   useEffect(() => {
@@ -137,48 +207,26 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
     setError('');
 
     try {
-      await appointmentsApi.create({
+      const response = await appointmentsApi.create({
         doctor_id: selectedDoctorId,
         appointment_date: appointmentDate,
         time_slot: timeSlot,
         reason: symptoms,
+        scheme,
+        payment_status: scheme.includes('Cash') ? 'paid' : 'covered_under_scheme',
+        fee: Number(selectedDoctorObj.consultation_fee || selectedDoctorObj.fee || 0),
+        hospital_branch: selectedHospitalBranch,
+        patient_name: patientName,
+        patient_age: Number(patientAge),
+        patient_gender: patientGender,
+        patient_phone: patientPhone,
+        blood_group: bloodGroup,
+        opd_room: selectedDoctorObj.opd_room || selectedDoctorObj.opdRoom || 'Room TBD',
       });
 
-      const deptPrefix = selectedDept.slice(0, 3).toUpperCase();
-      const tokenSeq = Math.floor(10 + Math.random() * 85);
-      const tokenNum = `OPD-${deptPrefix}-${tokenSeq}`;
-      const uhid = `UHID-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-      const registrationId = `REG-${Math.floor(1000 + Math.random() * 9000)}`;
-      const opdNumber = `OPD-${Math.floor(10000 + Math.random() * 90000)}`;
-
-      const newSlip: OpdSlip = {
-        tokenNumber: tokenNum,
-        patientUhid: uhid,
-        patientName,
-        patientAge: Number(patientAge),
-        patientGender,
-        patientPhone,
-        bloodGroup,
-        department: selectedDept,
-        doctorName: selectedDoctorObj.full_name || selectedDoctorObj.name || 'Selected Specialist',
-        opdRoom: selectedDoctorObj.opd_room || selectedDoctorObj.opdRoom || 'Room TBD',
-        appointmentDate,
-        timeSlot,
-        symptoms,
-        scheme,
-        paymentStatus: scheme.includes('Cash') ? 'paid' : 'covered_under_scheme',
-        fee: scheme.includes('Cash') ? Number(selectedDoctorObj.consultation_fee || selectedDoctorObj.fee || 0) : 0,
-        qrCodeValue: `https://smartcare.org/opd/verify?token=${tokenNum}&uhid=${uhid}`,
-        createdTimestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        registrationId,
-        opdNumber,
-        hospitalBranch: selectedHospitalBranch,
-        appointmentTime: timeSlot,
-        status: 'confirmed',
-      };
-
-      setActiveSlip(newSlip);
-      setSavedSlips((prev) => [newSlip, ...prev]);
+      const createdSlip = convertAppointmentToSlip(response.data || {});
+      setActiveSlip(createdSlip);
+      setSavedSlips((prev) => [createdSlip, ...prev.filter((slip) => slip.tokenNumber !== createdSlip.tokenNumber)]);
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Unable to create the appointment right now.');
     } finally {
@@ -550,8 +598,8 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
                   <span className="text-xs font-bold text-slate-800 block mb-0.5">Scan at Hospital Kiosk</span>
                   <span className="text-[11px] text-slate-500">Show this QR code at Counter #1 for direct entry</span>
                 </div>
-                <div className="w-16 h-16 bg-white rounded-xl p-1.5 flex items-center justify-center shrink-0 border border-slate-200 shadow-xs">
-                  <QrCode className="w-full h-full text-slate-800" />
+                <div className="w-20 h-20 bg-white rounded-xl p-1.5 flex items-center justify-center shrink-0 border border-slate-200 shadow-xs">
+                  <QRCodeCanvas value={activeSlip.qrCodeValue} size={84} bgColor="#ffffff" fgColor="#0f172a" level="H" />
                 </div>
               </div>
 
@@ -576,6 +624,66 @@ export const OpdRegistration: React.FC<OpdRegistrationProps> = ({
               </p>
             </div>
           )}
+
+          {/* Hospital Navigation */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-2 pb-4 border-b border-slate-200">
+              <div>
+                <h4 className="text-sm font-bold text-slate-800">Hospital Navigation</h4>
+                <p className="mt-1 text-xs text-slate-500">Find Departments, Pharmacy, Emergency, OPD, and Labs with route guidance.</p>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
+                <MapPin className="w-3.5 h-3.5 text-slate-700" />
+                {selectedNavigation.time}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <input
+                type="search"
+                value={navSearch}
+                onChange={(e) => setNavSearch(e.target.value)}
+                placeholder="Search departments, labs, pharmacy..."
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+              />
+            </div>
+
+            <div className="mt-4 grid gap-2">
+              {availableNavigationDestinations.map((item) => {
+                const selected = item.name === selectedNavigation.name;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedNavTarget(item.name)}
+                    className={`w-full rounded-2xl border px-4 py-3 text-left text-sm transition ${selected ? 'border-sky-500 bg-sky-50 text-slate-900' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">{item.name}</p>
+                        <p className="mt-1 text-[11px] text-slate-500">{item.floor}</p>
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-500">{item.time}</div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-slate-500">{item.route}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h5 className="font-semibold text-slate-900">Current path</h5>
+                  <p className="mt-1 text-xs text-slate-500">{selectedNavigation.route}</p>
+                </div>
+                <div className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold uppercase text-slate-600">
+                  {selectedNavigation.floor}
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-slate-600">Estimated walking time: <span className="font-semibold text-slate-800">{selectedNavigation.time}</span></div>
+            </div>
+          </div>
 
           {/* Previous Slips History */}
           {savedSlips.length > 0 && (
