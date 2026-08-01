@@ -168,6 +168,8 @@ async def refresh_token(request: RefreshRequest):
 
 
 @router.get("/me")
-async def get_current_profile():
-    """Public endpoint – requires token via dependency injection at router level."""
-    pass  # handled by the /users/me route
+async def get_current_profile(current_user: dict = Depends(get_current_user)):
+    """Get current logged-in user profile."""
+    user = current_user.copy()
+    user.pop("password", None)
+    return success_response(data=user, message="User profile retrieved")

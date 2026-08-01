@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   Mail, Lock, Eye, EyeOff, AlertCircle, ShieldCheck, 
   ChevronRight, FileText, Clock, ImageIcon, CheckCircle,

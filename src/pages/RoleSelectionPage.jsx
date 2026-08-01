@@ -5,11 +5,12 @@ import { Briefcase, GraduationCap, ShieldCheck, UserRound, ArrowRight, Sparkles,
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { GlassCard } from '../components/ui/GlassCard';
+import { roleHome } from '../utils/rbac';
 
 export default function RoleSelectionPage() {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState('trainee');
-  const { user, selectRole } = useAuth();
+  const { user, selectRole, selectedRole: currentRole } = useAuth();
+  const [selectedRole, setSelectedRole] = useState(currentRole || 'patient');
   const { t } = useLanguage();
 
   const roles = [
@@ -19,19 +20,7 @@ export default function RoleSelectionPage() {
       description: t('roles.patientBody', 'Access appointments, reports, prescriptions and your personal care plan.'),
       icon: UserRound,
       accent: 'from-blue-600 to-cyan-500',
-    }, {
-      id: 'trainee',
-      title: t('roles.traineeTitle', 'Trainee'),
-      description: t('roles.traineeBody', 'Join the hospital training workflow and record attendance from the campus zone.'),
-      icon: GraduationCap,
-      accent: 'from-emerald-500 to-teal-500',
-    },
-    {
-      id: 'hr',
-      title: t('roles.hrTitle', 'HR'),
-      description: t('roles.hrBody', 'Coordinate employee onboarding, attendance and operational visibility.'),
-      icon: Briefcase,
-      accent: 'from-blue-600 to-cyan-500',
+      highlight: 'Personal health, appointments, reports, navigation',
     },
     {
       id: 'doctor',
@@ -39,8 +28,27 @@ export default function RoleSelectionPage() {
       description: t('roles.doctorBody', 'Access hospital resources, appointments, and support tools instantly.'),
       icon: Stethoscope,
       accent: 'from-violet-600 to-fuchsia-500',
+      highlight: 'Clinical workflows, consultations, patient records',
+    },
+    {
+      id: 'trainee',
+      title: t('roles.traineeTitle', 'Trainee'),
+      description: t('roles.traineeBody', 'Join the hospital training workflow and record attendance from the campus zone.'),
+      icon: GraduationCap,
+      accent: 'from-emerald-500 to-teal-500',
+      highlight: 'Training schedule, attendance, learning path',
+    },
+    {
+      id: 'hr',
+      title: t('roles.hrTitle', 'HR'),
+      description: t('roles.hrBody', 'Coordinate employee onboarding, attendance and operational visibility.'),
+      icon: Briefcase,
+      accent: 'from-sky-600 to-blue-500',
+      highlight: 'Workforce operations, attendance, approvals',
     },
   ];
+
+  const selectedRoleData = roles.find((role) => role.id === selectedRole) || roles[0];
 
   const handleContinue = () => {
     selectRole(selectedRole);
@@ -52,40 +60,76 @@ export default function RoleSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface px-4 py-10 lg:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-4 py-10 text-slate-100">
+      <div className="mx-auto flex max-w-6xl flex-col gap-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-glass backdrop-blur-xl"
+          className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/80 px-8 py-10 shadow-2xl shadow-slate-900/40 backdrop-blur-xl"
         >
-          <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-brand-600">
-            <Sparkles className="h-4 w-4" />
-            <span>SmartCare Experience Hub</span>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.18),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(168,85,247,0.16),_transparent_35%)]" />
+          <div className="relative z-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-sky-300 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-sky-200" />
+                {t('roles.accessLabel', 'Access Portal')}
+              </div>
+              <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+                {t('roles.title', 'Choose the role that fits you')}
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                {t(
+                  'roles.subtitle',
+                  'Pick your portal to unlock personalized dashboards, tools, and hospital workflows tailored to your role.'
+                )}
+              </p>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-6 shadow-lg shadow-slate-950/40">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-800/90 text-sky-300 shadow-inner shadow-slate-900/40">
+                  <ShieldCheck className="h-7 w-7" />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.28em] text-slate-400">{t('roles.quickStart', 'Quick start')}</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{selectedRoleData.title}</p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-300">{selectedRoleData.description}</p>
+              <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/80 p-4 text-sm text-slate-300">
+                <span className="font-semibold text-white">{t('roles.focus', 'Focus')}:</span> {selectedRoleData.highlight}
+              </div>
+            </div>
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{t('roles.title', 'Choose your role')}</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-600">
-            {t('roles.subtitle', 'Select the role that best matches your workflow so the app can guide you to the right journey, attendance experience, and hospital tools.')}
-          </p>
         </motion.div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-4">
           {roles.map((role) => {
             const Icon = role.icon;
             const active = selectedRole === role.id;
             return (
               <motion.button
                 key={role.id}
-                whileHover={{ y: -3, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ y: -6 }}
                 onClick={() => setSelectedRole(role.id)}
-                className={`rounded-3xl border p-6 text-left transition-all ${active ? 'border-brand-400 bg-brand-50 shadow-sm' : 'border-slate-200 bg-white/80 hover:border-slate-300'}`}
+                className={`group relative overflow-hidden rounded-[1.75rem] border p-6 text-left transition-all duration-300 ${
+                  active
+                    ? 'border-sky-300/40 bg-slate-900/90 shadow-[0_30px_80px_-45px_rgba(56,189,248,0.8)]'
+                    : 'border-white/10 bg-slate-950/70 hover:border-slate-200/40 hover:bg-slate-900/80'
+                }`}
               >
-                <div className={`inline-flex rounded-2xl bg-gradient-to-br ${role.accent} p-3 text-white`}>
+                <div className={`inline-flex items-center justify-center rounded-3xl p-4 text-white shadow-lg ${active ? 'bg-sky-500' : 'bg-slate-800/80'}`}>
                   <Icon className="h-6 w-6" />
                 </div>
-                <h2 className="mt-4 text-xl font-semibold text-slate-900">{role.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{role.description}</p>
+                <h2 className="mt-5 text-xl font-semibold text-white">{role.title}</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-300">{role.description}</p>
+                <div className="mt-5 flex items-center justify-between text-xs uppercase tracking-[0.24em] text-slate-500">
+                  <span>{t('roles.portal', 'Portal')}</span>
+                  <span className={`rounded-full px-3 py-1 font-semibold ${active ? 'bg-sky-500/15 text-sky-200' : 'bg-white/5 text-slate-300'}`}>Select</span>
+                </div>
+                <span
+                  className={`absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r ${role.accent} opacity-0 transition-opacity duration-300 ${active ? 'opacity-100' : 'group-hover:opacity-70'}`}
+                />
               </motion.button>
             );
           })}
@@ -94,14 +138,18 @@ export default function RoleSelectionPage() {
         <GlassCard className="!p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{t('roles.selectedRole', 'Selected role')}</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">{roles.find((role) => role.id === selectedRole)?.title}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">
+                {t('roles.selectedRole', 'Selected role')}
+              </p>
+              <p className="mt-2 text-3xl font-extrabold text-white">{selectedRoleData.title}</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">{selectedRoleData.description}</p>
             </div>
+
             <button
               onClick={handleContinue}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-90"
+              className="inline-flex items-center justify-center gap-3 rounded-3xl bg-gradient-to-r from-sky-500 to-cyan-400 px-7 py-3 text-sm font-semibold text-slate-950 shadow-xl shadow-sky-500/30 transition hover:-translate-y-0.5"
             >
-              {t('roles.continue', 'Continue securely')}
+              {user ? t('roles.continue', 'Continue securely') : t('roles.loginContinue', 'Continue to login')}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
