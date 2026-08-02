@@ -1,6 +1,10 @@
 import os
 import uuid
-from gtts import gTTS
+
+try:
+    from gtts import gTTS
+except ImportError:  # pragma: no cover - optional dependency
+    gTTS = None
 
 from app.core.config import settings
 
@@ -10,6 +14,9 @@ def synthesize_text_to_mp3(text: str, lang: str = 'en') -> str:
 
     Returns a relative URL path under the uploads directory (e.g. `/uploads/tts-<uuid>.mp3`).
     """
+    if gTTS is None:
+        raise RuntimeError("gTTS is not installed")
+
     filename = f"tts-{uuid.uuid4().hex}.mp3"
     out_dir = settings.UPLOAD_DIR
     os.makedirs(out_dir, exist_ok=True)

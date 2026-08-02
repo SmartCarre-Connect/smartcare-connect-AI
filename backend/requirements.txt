@@ -12,8 +12,9 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.20
 python-dotenv==1.1.1
 google-generativeai==0.8.5
-Pillow==11.2.1
-PyMuPDF==1.25.5
+# Pillow==11.2.1  # removed for local build compatibility
+# PyMuPDF==1.25.5  # removed for local build compatibility
+# pytesseract==0.3.13  # removed for local build compatibility
 slowapi==0.1.9
 loguru==0.7.3
 httpx==0.28.1

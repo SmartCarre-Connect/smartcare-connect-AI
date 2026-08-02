@@ -15,6 +15,21 @@ async def connect_to_mongo():
     # Create indexes
     await create_indexes()
     logger.info(f"Connected to MongoDB database: {settings.DATABASE_NAME}")
+    # Seed sample data in development when empty
+    try:
+        # Only seed if doctors collection is empty to avoid overwriting real data
+        count = await db.doctors.count_documents({})
+        if count == 0:
+            try:
+                from app.database.seed import seed as run_seed
+                logger.info("Seeding database with sample data...")
+                await run_seed()
+                logger.info("Database seeded with sample data.")
+            except Exception as e:
+                logger.warning(f"Seeding failed: {e}")
+    except Exception:
+        # If any error occurs while checking/seeding, continue without failing startup
+        logger.debug("Could not check or seed the database at startup.")
 
 
 async def close_mongo_connection():

@@ -49,7 +49,9 @@ export default function MedicalReports() {
       await reportsApi.upload(formData);
       await fetchReports();
     } catch (err) {
-      alert('Upload failed. Please try again.');
+      const message = err?.response?.data?.message || err?.response?.data?.detail || err?.message || 'Upload failed. Please try again.';
+      // Friendly UI alert — replace with toaster if available
+      alert(message);
     } finally {
       setUploading(false);
     }
@@ -175,6 +177,21 @@ export default function MedicalReports() {
                     >
                       <Download size={14} /> Download
                     </a>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await reportsApi.analyzeReport(report.id);
+                          // refresh
+                          await fetchReports();
+                          alert('Analysis requested. The result will appear when ready.');
+                        } catch (err) {
+                          alert(err?.response?.data?.message || 'Analysis request failed.');
+                        }
+                      }}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-lg transition-colors"
+                    >
+                      <FilePlus2 size={14} /> Analyze
+                    </button>
                   </div>
                 </GlassCard>
               </motion.div>

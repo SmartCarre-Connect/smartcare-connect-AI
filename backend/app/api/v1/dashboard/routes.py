@@ -51,9 +51,13 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         total_appointments = await db.appointments.count_documents({})
         today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         today_appts = await db.appointments.count_documents({"appointment_date": {"$regex": today_str}})
+        today_opd = await db.appointments.count_documents({"appointment_date": {"$regex": today_str}, "status": {"$ne": "Cancelled"}})
         total_employees = await db.employees.count_documents({})
+        active_staff = await db.users.count_documents({"role": {"$in": ["doctor", "hr", "admin", "super_admin"]}, "is_active": True})
         pending_leaves = await db.leave_requests.count_documents({"status": "Pending"})
         total_reports = await db.medical_reports.count_documents({})
+        medicine_inventory = await db.medicine_inventory.find({"stock": {"$gt": 0}}).to_list(length=200)
+        medicines_in_stock = sum((item.get("stock") or 0) for item in medicine_inventory)
         total_revenue = total_appointments * 500  # simplified
 
         return success_response(data={
@@ -61,6 +65,9 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
             "total_doctors": total_doctors,
             "total_appointments": total_appointments,
             "today_appointments": today_appts,
+            "today_opd": today_opd,
+            "medicines_in_stock": medicines_in_stock,
+            "active_staff": active_staff,
             "total_employees": total_employees,
             "pending_leaves": pending_leaves,
             "total_reports": total_reports,

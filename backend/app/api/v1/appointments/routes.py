@@ -90,6 +90,19 @@ async def create_appointment(data: AppointmentCreate, current_user: dict = Depen
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
 
+    # Create notification for patient
+    try:
+        await db.notifications.insert_one({
+            "user_id": ObjectId(current_user["_id"]),
+            "title": "Appointment confirmed",
+            "message": f"Your appointment with {doctor_user.get('full_name','Doctor') if doctor_user else data.doctor_id} is confirmed for {data.appointment_date} at {data.time_slot}.",
+            "type": "appointment",
+            "is_read": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception:
+        pass
+
     return success_response(
         data=serialize_doc(appointment_doc),
         message="Appointment booked successfully",

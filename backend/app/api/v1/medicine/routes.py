@@ -31,6 +31,19 @@ async def create_reminder(data: MedicineReminderCreate, current_user: dict = Dep
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await db.medicine_reminders.insert_one(reminder_doc)
+    # Create notification for patient about reminder
+    try:
+        await db.notifications.insert_one({
+            "user_id": ObjectId(current_user["_id"]),
+            "title": "Medicine reminder set",
+            "message": f"Reminder set for {data.medicine_name} starting {data.start_date}.",
+            "type": "medicine_reminder",
+            "is_read": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception:
+        pass
+
     return success_response(
         data={"id": str(result.inserted_id)},
         message="Medicine reminder created",

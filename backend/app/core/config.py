@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     # Upload
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_SIZE: int = 20971520  # 20MB
+    EMERGENCY_NUMBER: str = "102"
 
     # CORS
     CORS_ORIGINS: str = "https://smartcare-connect-ai.vercel.app"

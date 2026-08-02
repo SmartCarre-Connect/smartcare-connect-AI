@@ -21,33 +21,55 @@ function HelpCenter() {
   const location = useLocation();
   const [question, setQuestion] = useState('');
   const [language, setLanguage] = useState('auto');
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(window.localStorage.getItem('smartcare_help_history') || '[]'); } catch { return []; }
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const simpleAnswers = {
+    'How can I book an appointment?': 'Open the Doctors or Appointments page, pick a doctor, choose a date/time and confirm the booking. You will receive a confirmation and reminders.',
+    'Where can I download my medical reports?': 'Go to the Reports section and download any uploaded documents. Use the Upload button to add new reports.',
+    'How do I use the hospital navigation map?': 'Open Hospital Map, select the floor, search for a department, and press Navigate to see turn-by-turn indoor directions.',
+    'What should I do in an emergency?': 'Call local emergency services immediately and use the Emergency section in the app to find ambulance and blood bank contacts. Notify hospital reception if possible.',
+    'How can I update my profile and contact details?': 'Open your Profile page and use the Edit button to update your contact, emergency contacts, and medical history. Save changes when done.'
+  };
 
   const askQuestion = async (text) => {
     if (!text.trim()) return;
     const query = text.trim();
     setError(null);
     setLoading(true);
-    setHistory((prev) => [...prev, { id: Date.now(), role: 'user', text: query }]);
+    setHistory((prev) => {
+      const next = [...prev, { id: Date.now(), role: 'user', text: query }];
+      try { window.localStorage.setItem('smartcare_help_history', JSON.stringify(next)); } catch {}
+      return next;
+    });
     setQuestion('');
 
     try {
       const res = await helpCenterApi.ask(query, language);
-      setHistory((prev) => [...prev, {
-        id: Date.now() + 1,
-        role: 'assistant',
-        text: res.data?.answer || res.data?.message || 'I could not retrieve an answer at this time.',
-      }] );
+      const answer = res.data?.answer || res.data?.message || null;
+      if (answer) {
+        setHistory((prev) => {
+          const next = [...prev, { id: Date.now() + 1, role: 'assistant', text: answer }];
+          try { window.localStorage.setItem('smartcare_help_history', JSON.stringify(next)); } catch {}
+          return next;
+        });
+      } else {
+        throw new Error('No answer');
+      }
     } catch (err) {
       console.error('HelpCenter API error', err);
-      setError(err.response?.data?.message || 'Unable to get help center response. Please try again later.');
-      setHistory((prev) => [...prev, {
-        id: Date.now() + 1,
-        role: 'system',
-        text: 'Sorry, I could not process your question right now.',
-      }] );
+      setError(err.response?.data?.message || 'Unable to get help center response. Using offline help.');
+      // Try simple local match
+      const best = Object.keys(simpleAnswers).find(k => query.toLowerCase().includes(k.split(' ')[0].toLowerCase()));
+      const fallback = best ? simpleAnswers[best] : 'Sorry, I could not process your question right now. Try rephrasing or contact hospital support.';
+      setHistory((prev) => {
+        const next = [...prev, { id: Date.now() + 1, role: 'assistant', text: fallback }];
+        try { window.localStorage.setItem('smartcare_help_history', JSON.stringify(next)); } catch {}
+        return next;
+      });
     } finally {
       setLoading(false);
     }

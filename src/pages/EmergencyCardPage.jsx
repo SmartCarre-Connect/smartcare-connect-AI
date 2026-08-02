@@ -6,10 +6,19 @@ import { ShieldAlert, Heart, Phone, AlertCircle, Pill, Share2, Copy } from 'luci
 
 export const EmergencyCardPage = () => {
   const [card, setCard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    emergencyApi.getCard().then((res) => setCard(res.data)).catch(console.error);
+    setLoading(true);
+    emergencyApi.getCard()
+      .then((res) => setCard(res.data))
+      .catch((err) => {
+        console.error(err);
+        setError(err?.response?.data?.message || 'Unable to load emergency card');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const handleCallEmergency = () => {
@@ -30,8 +39,21 @@ export const EmergencyCardPage = () => {
     }
   };
 
-  if (!card) {
+  if (loading) {
     return <div className="p-8 text-center text-xs text-slate-500">Loading Emergency Medical Profile...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-sm text-red-600">
+        <div className="font-bold mb-2">Could not load emergency information</div>
+        <div>{error}</div>
+      </div>
+    );
+  }
+
+  if (!card) {
+    return <div className="p-8 text-center text-xs text-slate-500">No emergency information available.</div>;
   }
 
   return (

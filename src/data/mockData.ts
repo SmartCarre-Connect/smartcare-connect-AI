@@ -302,11 +302,16 @@ export const mockAnnouncements: AnnouncementItem[] = [
 ];
 
 export const mockNavigationDestinations: NavigationDestination[] = [
-  { id: 'nav-1', name: 'Departments', floor: 'First Floor', route: 'Reception → Central Atrium → Department Corridor', time: '5 mins', accessible: true },
-  { id: 'nav-2', name: 'OPD', floor: 'First Floor', route: 'Reception → Lift A → Corridor 2', time: '4 mins', accessible: true },
-  { id: 'nav-3', name: 'Pharmacy', floor: 'Ground Floor', route: 'Main Atrium → Right Wing → Pharmacy Counter', time: '3 mins', accessible: true },
-  { id: 'nav-4', name: 'Emergency', floor: 'Ground Floor', route: 'Main Gate → Ramp → Emergency Entrance', time: '2 mins', accessible: true },
-  { id: 'nav-5', name: 'Labs', floor: 'Second Floor', route: 'Lift B → Diagnostics Wing → Lab Reception', time: '6 mins', accessible: true },
+  { id: 'nav-1', name: 'Reception', floor: 'Ground Floor', route: 'Main Entrance → Reception Desk', time: '0 mins', accessible: true, instructions: 'You are currently near the Main Entrance. The Reception desk is immediately ahead on your right.' },
+  { id: 'nav-2', name: 'OPD', floor: 'First Floor', route: 'Reception → Lift A → Corridor 2 → OPD Wing', time: '4 mins', accessible: true, instructions: 'You are currently near Reception. Go straight for 10 meters. Take Lift A to Floor 1. Exit left and walk 20 meters. The OPD will be on your right.' },
+  { id: 'nav-3', name: 'Pharmacy', floor: 'Ground Floor', route: 'Main Atrium → West Corridor → Pharmacy Counter', time: '3 mins', accessible: true, instructions: 'You are currently near Reception. Walk straight through the Main Atrium for 15 meters. Turn right into the West Corridor. The Pharmacy counter is on your left.' },
+  { id: 'nav-4', name: 'Emergency', floor: 'Ground Floor', route: 'Main Gate → Ramp → Emergency Entrance', time: '2 mins', accessible: true, instructions: 'You are currently near Reception. Head towards the Main Gate and take the ramp to your left for 20 meters. The Emergency entrance is directly ahead.' },
+  { id: 'nav-5', name: 'Laboratory', floor: 'Second Floor', route: 'Lift B → Diagnostics Wing → Lab Reception', time: '6 mins', accessible: true, instructions: 'You are currently near Reception. Take Lift B to Floor 2. Exit the lift, turn right and follow the signs for Diagnostics. The Laboratory reception will be on your left.' },
+  { id: 'nav-6', name: 'ICU', floor: 'Second Floor', route: 'Lift A → North Corridor → ICU Entrance (Restricted Access)', time: '7 mins', accessible: false, instructions: 'You are currently near Reception. Take Lift A to Floor 2. Walk down the North Corridor for 30 meters. The ICU entrance is on your right (restricted access).' },
+  { id: 'nav-7', name: 'Billing Counter', floor: 'Ground Floor', route: 'Reception → Billing Zone (Left of Reception)', time: '1 mins', accessible: true, instructions: 'You are currently near Reception. Walk left for 5 meters. The Billing Counter is directly beside the Reception desk.' },
+  { id: 'nav-8', name: 'Radiology', floor: 'First Floor', route: 'Lift B → Imaging Wing → Radiology', time: '5 mins', accessible: true, instructions: 'You are currently near Reception. Take Lift B to Floor 1. Turn left into the Imaging Wing and follow the corridor. Radiology will be on your right.' },
+  { id: 'nav-9', name: 'Blood Bank', floor: 'Ground Floor', route: 'Main Atrium → Blood Bank Counter (Near Cafeteria)', time: '4 mins', accessible: true, instructions: 'You are currently near Reception. Walk through the Main Atrium for 20 meters towards the Cafeteria. The Blood Bank counter is adjacent to the Cafeteria.' },
+  { id: 'nav-10', name: 'Waiting Area', floor: 'Ground Floor', route: 'Reception → Central Atrium → Waiting Lounge', time: '1 mins', accessible: true, instructions: 'You are currently near Reception. Go straight for 5 meters into the Central Atrium. The Waiting Area is in front of you.' },
 ];
 
 export const walkthroughSteps: WalkthroughStep[] = [

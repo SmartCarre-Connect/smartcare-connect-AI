@@ -18,94 +18,60 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('SmartCare-Connect_token');
-    const demoUser = {
-      id: 'demo-user-123',
-      name: 'Alex Morgan',
-      email: 'demo@SmartCare-Connect.ai',
-      blood_group: 'A+',
-      allergies: ['Penicillin'],
-      emergency_contact: '+1 (555) 948-2301',
-      role: selectedRole
-    };
-
-    if (token) {
-      if (token === 'demo-mock-jwt-token') {
-        setUser(demoUser);
-        setLoading(false);
-      } else {
-        authApi.getMe()
-          .then((res) => {
-            setUser(res.data || demoUser);
-          })
-          .catch(() => {
-            // Keep user logged in with demo profile even if backend endpoint is unavailable
-            setUser(demoUser);
-          })
-          .finally(() => setLoading(false));
-      }
-    } else {
+    if (!token) {
       setUser(null);
       setLoading(false);
+      return;
     }
+
+    // If a token exists, validate it by fetching current user profile.
+    authApi.getMe()
+      .then((res) => {
+        setUser(res.data || null);
+      })
+      .catch(() => {
+        // Token invalid or backend unreachable: clear token and reset user.
+        localStorage.removeItem('SmartCare-Connect_token');
+        setUser(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async (email, password) => {
-    const demo = {
-      id: 'demo-user-123',
-      name: email && email.includes('admin') ? 'Admin User' : 'Alex Morgan',
-      email: email || 'demo@SmartCare-Connect.ai',
-      blood_group: 'A+',
-      allergies: ['Penicillin'],
-      emergency_contact: '+1 (555) 948-2301',
-      role: selectedRole
-    };
-    try {
-      const res = await authApi.login({ email, password, role: selectedRole });
-      if (res.data?.access_token) {
-        localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-        const authenticatedUser = { ...demo, ...res.data, role: res.data.role || selectedRole, name: res.data.full_name || demo.name };
-        setUser(authenticatedUser);
-        selectRole(authenticatedUser.role);
-        return authenticatedUser;
-      }
-    } catch (err) {
-      console.warn("Backend auth call failed, defaulting to demo user", err);
-      localStorage.setItem('SmartCare-Connect_token', 'demo-mock-jwt-token');
-      setUser(demo);
-      return demo;
+    const res = await authApi.login({ email, password, role: selectedRole });
+    if (res?.data?.access_token) {
+      localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
+      // Fetch the full profile from the backend to populate user state
+      const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
+      const authenticatedUser = profile || {
+        id: res.data.user_id || null,
+        name: res.data.full_name || email,
+        email,
+        role: res.data.role || selectedRole,
+      };
+      setUser(authenticatedUser);
+      selectRole(authenticatedUser.role);
+      return authenticatedUser;
     }
+    throw new Error('Login failed');
   };
 
   const register = async (userData) => {
-    try {
-      const res = await authApi.register(userData);
-      if (res.data?.access_token) {
-        localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-        const registeredUser = {
-          id: res.data.user_id || 'new-user',
-          name: userData.full_name || userData.name || '',
-          email: userData.email,
-          role: res.data.role || userData.role || selectedRole,
-        };
-        setUser(registeredUser);
-        selectRole(registeredUser.role);
-        return res.data;
-      }
-      return res.data;
-    } catch (err) {
-      const demo = {
-        id: 'reg-user-999',
-        name: userData.name,
+    const res = await authApi.register(userData);
+    if (res?.data?.access_token) {
+      localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
+      const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
+      const registeredUser = profile || {
+        id: res.data.user_id || 'new-user',
+        name: userData.full_name || userData.name || '',
         email: userData.email,
-        blood_group: userData.blood_group || 'O+',
-        allergies: userData.allergies || [],
-        emergency_contact: userData.emergency_contact || '',
-        role: selectedRole
+        role: res.data.role || userData.role || selectedRole,
       };
-      localStorage.setItem('SmartCare-Connect_token', 'demo-mock-jwt-token');
-      setUser(demo);
-      return { user: demo };
+      setUser(registeredUser);
+      selectRole(registeredUser.role);
+      return res.data;
     }
+    throw new Error('Registration failed');
   };
 
   const logout = () => {

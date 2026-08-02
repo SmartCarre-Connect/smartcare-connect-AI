@@ -9,6 +9,10 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    watch: {
+      // Ignore Visual Studio workspace files which OneDrive or VS may lock
+      ignored: ['**/.vs/**', '**/.git/**', '**/node_modules/**'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

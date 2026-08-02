@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.database.mongodb import get_database
+from app.core.dependencies import get_current_user
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from app.schemas.schemas import RegisterRequest, LoginRequest, TokenResponse, RefreshRequest, SendOTPRequest, VerifyOTPRequest
 from app.utils.helpers import success_response, error_response, serialize_doc

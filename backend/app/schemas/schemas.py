@@ -61,6 +61,15 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class SendOTPRequest(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=15)
+
+
+class VerifyOTPRequest(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=15)
+    otp: str = Field(..., min_length=6, max_length=6)
+
+
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
@@ -101,20 +110,27 @@ class PatientUpdate(BaseModel):
 # ===== Doctor Schemas =====
 
 class DoctorCreate(BaseModel):
+    full_name: Optional[str] = None
+    medical_reg_number: Optional[str] = None
     specialization: str
-    experience: int
+    experience: int = Field(..., ge=0)
     qualification: str
-    consultation_fee: float = 500
+    consultation_fee: float = Field(default=500, ge=0)
     department_id: Optional[str] = None
+    availability: Optional[str] = None
+    hospital_id: Optional[str] = None
 
 
 class DoctorUpdate(BaseModel):
+    full_name: Optional[str] = None
+    medical_reg_number: Optional[str] = None
     specialization: Optional[str] = None
-    experience: Optional[int] = None
+    experience: Optional[int] = Field(None, ge=0)
     qualification: Optional[str] = None
-    consultation_fee: Optional[float] = None
+    consultation_fee: Optional[float] = Field(None, ge=0)
     department_id: Optional[str] = None
-    availability: Optional[List[dict]] = None
+    availability: Optional[str] = None
+    hospital_id: Optional[str] = None
 
 
 # ===== Appointment Schemas =====
@@ -217,6 +233,67 @@ class DepartmentCreate(BaseModel):
     description: Optional[str] = None
     floor_id: Optional[str] = None
     head_doctor: Optional[str] = None
+
+
+class DepartmentUpdate(BaseModel):
+    department_name: Optional[str] = None
+    description: Optional[str] = None
+    floor_id: Optional[str] = None
+    head_doctor: Optional[str] = None
+
+
+class NavigationLocationCreate(BaseModel):
+    name: str
+    route: str
+    floor: str
+    description: Optional[str] = None
+    category: Optional[str] = None
+
+
+class NavigationLocationUpdate(BaseModel):
+    name: Optional[str] = None
+    route: Optional[str] = None
+    floor: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+
+
+class AnnouncementCreate(BaseModel):
+    title: str
+    message: str
+    priority: str = "normal"
+    published_at: Optional[str] = None
+
+
+class AnnouncementUpdate(BaseModel):
+    title: Optional[str] = None
+    message: Optional[str] = None
+    priority: Optional[str] = None
+    published_at: Optional[str] = None
+
+
+class MedicineInventoryCreate(BaseModel):
+    name: str
+    category: Optional[str] = None
+    stock: int = Field(default=0, ge=0)
+    unit: Optional[str] = None
+    status: str = "Available"
+    price: float = Field(default=0, ge=0)
+    expiry_date: Optional[str] = None
+    supplier: Optional[str] = None
+    description: Optional[str] = None
+
+
+class MedicineInventoryUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    stock: Optional[int] = Field(None, ge=0)
+    unit: Optional[str] = None
+    status: Optional[str] = None
+    price: Optional[float] = Field(None, ge=0)
+    expiry_date: Optional[str] = None
+    supplier: Optional[str] = None
+    description: Optional[str] = None
 
 
 # ===== Emergency Schemas =====
