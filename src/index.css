@@ -38,13 +38,28 @@
 
 @layer base {
   body {
-    @apply bg-surface text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white;
+    font-family: theme('fontFamily.sans');
+    color: rgb(30 41 59);
+    font-smoothing: antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--surface);
   }
+  body::selection {
+    background-color: var(--brand-500);
+    color: white;
+  }
   h1, h2, h3, h4, h5, h6 {
-    @apply text-slate-900 dark:text-slate-100 font-bold;
+    color: rgb(15 23 42);
+    font-weight: 700;
+  }
+  .dark h1, 
+  .dark h2,
+  .dark h3, 
+  .dark h4, 
+  .dark h5, 
+  .dark h6 {
+    color: rgb(248 250 252);
   }
 }
 
@@ -76,7 +91,9 @@
 
   /* Gradient accent card */
   .med-card-gradient {
-    @apply bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-premium;
+    background: linear-gradient(to bottom right, #2563EB, #1D4ED8);
+    color: white;
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.12);
     border-radius: var(--radius-card);
   }
 
@@ -98,90 +115,190 @@
      Button System
      ============================================ */
   .med-btn {
-    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-2xl transition-all duration-200 cursor-pointer select-none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 1rem;
+    transition: all 200ms;
+    cursor: pointer;
+    user-select: none;
   }
   .med-btn-primary {
     background: linear-gradient(to right, #2563EB, #1D4ED8);
     color: white;
     font-weight: 600;
-    @apply px-5 py-2.5 shadow-glow-sm hover:shadow-glow hover:scale-[1.02] active:scale-[0.98];
+    padding: 0.625rem 1.25rem;
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 200ms;
+  }
+  .med-btn-primary:hover {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.25);
+    transform: scale(1.02);
+  }
+  .med-btn-primary:active {
+    transform: scale(0.98);
   }
   .med-btn-secondary {
-    @apply px-5 py-2.5 bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/80 hover:border-slate-300;
+    padding: 0.625rem 1.25rem;
+    background-color: #F1F5F9;
+    color: #475569;
+    border: 1px solid rgba(226, 232, 240, 0.8);
     box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    transition: all 200ms;
+  }
+  .med-btn-secondary:hover {
+    background-color: #E2E8F0;
+    border-color: #CBD5E1;
   }
   .med-btn-ghost {
-    @apply px-4 py-2 text-slate-500 hover:bg-slate-50 hover:text-slate-800;
+    padding: 0.5rem 1rem;
+    color: #94A3B8;
+    transition: all 200ms;
+  }
+  .med-btn-ghost:hover {
+    background-color: #F1F5F9;
+    color: #1E293B;
   }
   .med-btn-danger {
-    @apply px-5 py-2.5 bg-red-500 text-white hover:bg-red-600 shadow-sm;
+    padding: 0.625rem 1.25rem;
+    background-color: #EF4444;
+    color: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 200ms;
+  }
+  .med-btn-danger:hover {
+    background-color: #DC2626;
   }
   .med-btn-success {
-    @apply px-5 py-2.5 bg-green-500 text-white hover:bg-green-600 shadow-glow-green;
+    padding: 0.625rem 1.25rem;
+    background-color: #22C55E;
+    color: white;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+    transition: all 200ms;
+  }
+  .med-btn-success:hover {
+    background-color: #16A34A;
   }
   .med-btn-sm {
-    @apply text-xs px-3.5 py-1.5 rounded-xl;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 0.75rem;
   }
   .med-btn-lg {
-    @apply text-base px-7 py-3 rounded-2xl;
+    font-size: 1rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 1rem;
   }
   .med-btn-icon {
-    @apply w-10 h-10 p-0 rounded-xl;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 0.75rem;
   }
 
   /* ============================================
      Input System
      ============================================ */
   .med-input {
-    @apply w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 
-           placeholder-slate-400 outline-none transition-all duration-200 shadow-sm
-           focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 focus:bg-white;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: #0F172A;
+    outline: none;
+    transition: all 200ms;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .med-input::placeholder {
+    color: #CBD5E1;
+  }
+  .med-input:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    background-color: white;
   }
   .med-input-with-icon {
-    @apply pl-11;
+    padding-left: 2.75rem;
   }
 
   /* ============================================
      Badge System
      ============================================ */
   .med-badge {
-    @apply inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
   }
   .med-badge-info {
-    @apply bg-brand-50 text-brand-600 border border-brand-100;
+    background-color: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #DBEAFE;
   }
   .med-badge-success {
-    @apply bg-green-50 text-green-600 border border-green-100;
+    background-color: #ECFDF5;
+    color: #047857;
+    border: 1px solid #D1FAE5;
   }
   .med-badge-warning {
-    @apply bg-amber-50 text-amber-600 border border-amber-100;
+    background-color: #FFFBEB;
+    color: #B45309;
+    border: 1px solid #FCD34D;
   }
   .med-badge-danger {
-    @apply bg-rose-50 text-rose-600 border border-rose-100;
+    background-color: #FEE2E2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
   }
   .med-badge-neutral {
-    @apply bg-slate-100 text-slate-600 border border-slate-200;
+    background-color: #F2F4F7;
+    color: #475569;
+    border: 1px solid #E2E8F0;
   }
 
   /* ============================================
      Nav System
      ============================================ */
   .med-nav-item {
-    @apply flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200
-           text-slate-700 hover:bg-slate-50 hover:text-slate-900;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 200ms;
+    color: #475569;
+  }
+  .med-nav-item:hover {
+    background-color: #F1F5F9;
+    color: #0F172A;
   }
   .med-nav-item-active {
     background: #DBEAFE;
     color: #2563EB;
-    @apply font-semibold shadow-sm border border-blue-200/50;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid rgba(191, 219, 254, 0.5);
   }
 
   /* ============================================
      Shimmer / Loading Skeleton
      ============================================ */
   .med-skeleton {
-    @apply bg-gradient-to-r from-slate-100 via-white to-slate-100 bg-[length:200%_100%] animate-shimmer rounded-[20px];
+    background: linear-gradient(to right, #F1F5F9 0%, white 50%, #F1F5F9 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+    border-radius: 1.25rem;
   }
 }
 
