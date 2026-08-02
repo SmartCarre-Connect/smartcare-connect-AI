@@ -26,6 +26,14 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 SmartCare Connect Backend starting...")
     await connect_to_mongo()
     logger.info("✅ SmartCare Connect Backend ready!")
+
+    # Create demo user for presentation if not exists
+    from app.utils.demo import create_demo_user_if_not_exists
+    try:
+        await create_demo_user_if_not_exists()
+    except Exception as e:
+        logger.warning(f"Demo user creation skipped: {e}")
+
     yield
     # Shutdown
     await close_mongo_connection()
