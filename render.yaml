@@ -18,7 +18,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://smartcare-connect-web.onrender.com
+        value: https://smartcare-connect-ai.vercel.app
       - key: UPLOAD_DIR
         value: uploads
   - type: web

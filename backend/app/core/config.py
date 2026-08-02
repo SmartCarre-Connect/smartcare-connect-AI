@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     EMERGENCY_NUMBER: str = "102"
 
     # CORS
-    CORS_ORIGINS: str = "https://smartcare-connect-ai.vercel.app"
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,https://smartcare-connect-ai.vercel.app"
 
     @property
     def cors_origins_list(self) -> List[str]:
