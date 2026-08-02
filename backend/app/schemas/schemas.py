@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, root_validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -62,12 +62,28 @@ class RefreshRequest(BaseModel):
 
 
 class SendOTPRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=15)
+    phone: Optional[str] = Field(None, min_length=10, max_length=15)
+    email: Optional[EmailStr] = None
+
+    @root_validator(skip_on_failure=True)
+    def check_contact(cls, values):
+        phone, email = values.get('phone'), values.get('email')
+        if not phone and not email:
+            raise ValueError('phone or email is required')
+        return values
 
 
 class VerifyOTPRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=15)
+    phone: Optional[str] = Field(None, min_length=10, max_length=15)
+    email: Optional[EmailStr] = None
     otp: str = Field(..., min_length=6, max_length=6)
+
+    @root_validator(skip_on_failure=True)
+    def check_contact(cls, values):
+        phone, email = values.get('phone'), values.get('email')
+        if not phone and not email:
+            raise ValueError('phone or email is required')
+        return values
 
 
 class ForgotPasswordRequest(BaseModel):

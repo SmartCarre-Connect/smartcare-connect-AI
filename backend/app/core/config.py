@@ -26,9 +26,14 @@ class Settings(BaseSettings):
     MICROSOFT_CLIENT_ID: str = ""
     MICROSOFT_CLIENT_SECRET: str = ""
 
-    # Email
-    EMAIL_USERNAME: str = ""
-    EMAIL_PASSWORD: str = ""
+    # Email / SMTP
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = ""
+    SMTP_USE_TLS: bool = True
+    SMTP_USE_SSL: bool = False
 
     # Upload
     UPLOAD_DIR: str = "uploads"

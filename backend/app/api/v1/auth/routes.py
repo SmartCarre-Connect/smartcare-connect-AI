@@ -28,6 +28,17 @@ async def register(request: RegisterRequest):
     if existing_phone:
         raise HTTPException(status_code=400, detail="Phone number already registered")
 
+    # Determine if contact was verified via OTP recently
+    verified = False
+    if request.email:
+        v = await db.verified_contacts.find_one({"email": request.email})
+        if v:
+            verified = True
+    if not verified and request.phone:
+        v = await db.verified_contacts.find_one({"phone": request.phone})
+        if v:
+            verified = True
+
     # Create user
     user_doc = {
         "full_name": request.full_name,
@@ -36,13 +47,20 @@ async def register(request: RegisterRequest):
         "password": hash_password(request.password),
         "role": request.role.value,
         "profile_image": "",
-        "is_verified": False,
+        "is_verified": verified,
         "is_active": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await db.users.insert_one(user_doc)
     user_id = str(result.inserted_id)
+
+    # Cleanup verified contact entry after successful registration
+    if verified:
+        if request.email:
+            await db.verified_contacts.delete_one({"email": request.email})
+        if request.phone:
+            await db.verified_contacts.delete_one({"phone": request.phone})
 
     # Create role-specific profile
     if request.role.value == "patient":
@@ -135,25 +153,54 @@ async def send_otp(request: SendOTPRequest):
     otp = f"{random.randint(100000, 999999)}"
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
 
-    await db.otp_codes.update_one(
-        {"phone": request.phone},
-        {
-            "$set": {
-                "otp": otp,
-                "expires_at": expires_at,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-            }
-        },
-        upsert=True,
-    )
+    # Prepare document to store
+    set_doc = {
+        "otp": otp,
+        "expires_at": expires_at,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
 
-    # Ensure TTL index exists for expiry cleanup
-    await db.otp_codes.create_index("phone", unique=True)
+    if request.email:
+        await db.otp_codes.update_one(
+            {"email": request.email},
+            {"$set": set_doc},
+            upsert=True,
+        )
+    else:
+        await db.otp_codes.update_one(
+            {"phone": request.phone},
+            {"$set": set_doc},
+            upsert=True,
+        )
+
+    # Ensure TTL index exists for expiry cleanup; use sparse indexes to allow either field
+    await db.otp_codes.create_index("phone", unique=True, sparse=True)
+    await db.otp_codes.create_index("email", unique=True, sparse=True)
     await db.otp_codes.create_index("expires_at", expireAfterSeconds=0)
 
-    logger.info(f"OTP generated for phone: {request.phone}")
+    identifier = request.email or request.phone
+    id_type = "email" if request.email else "phone"
+    logger.info(f"OTP generated for {id_type}: {identifier}")
+
+    # Attempt to send via email if email provided; fallback to terminal if SMTP not available
+    if request.email:
+        from app.utils.email import send_email
+        subject = "Your SmartCare Connect OTP"
+        body = f"Your verification code is {otp}. It will expire in 10 minutes."
+        sent = send_email(subject, request.email, body)
+        if sent:
+            logger.info(f"OTP email sent to {request.email}")
+        else:
+            # Development fallback: print OTP in terminal
+            print(f"Generated OTP: {otp}")
+            logger.warning("Email service unavailable. Using development mode.")
+    else:
+        # No SMS provider configured — developer fallback
+        print(f"Generated OTP: {otp}")
+        logger.warning("SMS service not configured. Using development mode.")
+
     return success_response(
-        data={"phone": request.phone, "expires_at": expires_at.isoformat()},
+        data={"identifier": identifier, "identifier_type": id_type, "expires_at": expires_at.isoformat()},
         message="OTP sent successfully",
     )
 
@@ -161,7 +208,10 @@ async def send_otp(request: SendOTPRequest):
 @router.post("/verify-otp")
 async def verify_otp(request: VerifyOTPRequest):
     db = get_database()
-    otp_entry = await db.otp_codes.find_one({"phone": request.phone})
+
+    # Find OTP entry by email or phone
+    query = {"email": request.email} if request.email else {"phone": request.phone}
+    otp_entry = await db.otp_codes.find_one(query)
     if not otp_entry:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
@@ -174,8 +224,23 @@ async def verify_otp(request: VerifyOTPRequest):
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="OTP expired")
 
-    await db.otp_codes.delete_one({"phone": request.phone})
-    logger.info(f"OTP verified for phone: {request.phone}")
+    # Mark contact as verified for a short window so register can use it
+    verified_doc = {
+        "email": request.email if request.email else None,
+        "phone": request.phone if request.phone else None,
+        "verified_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=10)),
+    }
+    # Upsert and create TTL index
+    if request.email:
+        await db.verified_contacts.update_one({"email": request.email}, {"$set": verified_doc}, upsert=True)
+    else:
+        await db.verified_contacts.update_one({"phone": request.phone}, {"$set": verified_doc}, upsert=True)
+    await db.verified_contacts.create_index("expires_at", expireAfterSeconds=0)
+
+    # Remove OTP entry
+    await db.otp_codes.delete_one(query)
+    logger.info(f"OTP verified for {'email' if request.email else 'phone'}: {request.email or request.phone}")
     return success_response(message="OTP verified successfully")
 
 
