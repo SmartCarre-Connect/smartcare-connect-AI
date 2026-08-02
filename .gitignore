@@ -30,3 +30,10 @@ uploads/
 *.njsproj
 *.sln
 *.sw?
+
+# Ignore IDE, env, build and cache folders
+.vs/
+.venv/
+build/
+.pytest_cache/
+.cache/
