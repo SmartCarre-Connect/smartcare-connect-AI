@@ -81,50 +81,39 @@ export default function Login() {
     };
   }, []);
 
-  const onSubmit = async (data) => {
-    try {
-      setError('');
+  const onSubmit = (data) => {
+    // Presentation-only login: accept only demo credentials and do NOT call backend
+    setError('');
 
-      // Handle demo credentials directly without backend call
-      if ((data.email.toLowerCase() === 'demo@smartcare.ai' || data.email.toLowerCase() === 'demo@smartcare-connect.ai') && 
-          data.password === 'Demo@123') {
-        // Store demo user data directly
-        const demoUser = {
-          user_id: 'demo-user-' + Date.now(),
-          email: data.email,
-          full_name: 'Demo Patient',
-          role: 'patient',
-          profile_image: '',
-        };
-        
-        localStorage.setItem('SmartCare-Connect_token', 'demo-jwt-' + Date.now());
-        localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
-        localStorage.setItem('SmartCare-Connect_user_role', 'patient');
-        
-        if (window.__showToast) {
-          window.__showToast('Login successful.', 'success');
-        }
-        navigate(roleHome('patient'));
-        return;
-      }
+    const email = (data.email || '').trim().toLowerCase();
+    const password = data.password || '';
 
-      await login(data.email, data.password);
+    if ((email === 'demo@smartcare.ai' || email === 'demo@smartcare-connect.ai') && password === 'Demo@123') {
+      const demoUser = {
+        user_id: 'demo-user-' + Date.now(),
+        email: data.email,
+        full_name: 'Demo Patient',
+        role: 'patient',
+        profile_image: '',
+      };
+
+      // Save fake token and demo user info
+      localStorage.setItem('SmartCare-Connect_token', 'demo-jwt-' + Date.now());
+      localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
+      // Use the same key AuthContext expects for selected role
+      localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
 
       if (window.__showToast) {
-        window.__showToast('Login successful.', 'success');
+        window.__showToast('Demo Login Successful', 'success');
       }
 
-      navigate(roleHome(selectedRole || 'patient'));
-    } catch (err) {
-      const errorMsg = err.response?.data?.detail || err.message || t('login.invalidCredentials', 'Invalid email or password');
-
-      // Suggest demo credentials if backend is unreachable
-      if (err.code === 'ERR_NETWORK' || !err.response || err.response?.status >= 500) {
-        setError(errorMsg + ' (Try demo account: demo@smartcare.ai / Demo@123)');
-      } else {
-        setError(errorMsg);
-      }
+      // Navigate directly to patient dashboard
+      navigate(roleHome('patient'));
+      return;
     }
+
+    // For presentation/demo mode we do not contact backend. Show a clear message.
+    setError('Invalid demo credentials.');
   };
 
   useEffect(() => { const role = searchParams.get('role'); if (role) selectRole(role); }, [searchParams, selectRole]);

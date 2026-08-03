@@ -2,6 +2,5 @@
   "buildCommand": "npm run build",
   "env": {
     "VITE_API_URL": "https://smartcare-connect-api.onrender.com/api/v1"
-  },
-  "envPrefix": "VITE_"
+  }
 }

@@ -41,11 +41,26 @@ class Settings(BaseSettings):
     EMERGENCY_NUMBER: str = "102"
 
     # CORS
+    # Allowed frontend origins (comma-separated). Set this in your hosting env for production.
+    # Keep localhost entries for local development.
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,https://smartcare-connect-ai.vercel.app"
+
+    # Optional: additional origins can be provided via EXTRA_CORS_ORIGINS env var
+    # This is useful to add Vercel preview URLs without changing code.
+    EXTRA_CORS_ORIGINS: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        base = [o.strip() for o in (self.CORS_ORIGINS or "").split(",") if o.strip()]
+        extra = [o.strip() for o in (self.EXTRA_CORS_ORIGINS or "").split(",") if o.strip()]
+        # Merge and deduplicate while preserving order
+        seen = set()
+        merged = []
+        for o in base + extra:
+            if o not in seen:
+                seen.add(o)
+                merged.append(o)
+        return merged
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
