@@ -131,24 +131,10 @@ export const ProfilePage = () => {
               {languageOptions.map((option) => (
                 <option key={option.code} value={option.code}>{option.nativeLabel}</option>
               ))}
-            </select>
-          </div>
-
-          <h3 className="text-sm font-bold text-slate-900">{t('profile.presenterTitle', 'AI Presenter Access')}</h3>
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-blue-500" />
-              <div>
-                <div className="font-semibold text-xs text-slate-900">{t('profile.presenterLabel', 'Open the AI virtual presenter')}</div>
-                <div className="text-[11px] text-slate-500">{t('profile.presenterDescription', 'Replay the premium onboarding tour anytime from settings.')}</div>
-              </div>
+              </select>
             </div>
-            <Link to="/presenter" className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold border border-blue-500">
-              {t('profile.presenterAction', 'Launch Tour')}
-            </Link>
-          </div>
 
-          <h3 className="text-sm font-bold text-slate-900">{t('profile.themeTitle', 'Theme & Display Settings')}</h3>
+            <h3 className="text-sm font-bold text-slate-900">{t('profile.themeTitle', 'Theme & Display Settings')}</h3>
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div className="flex items-center gap-3">
               {theme === 'dark' ? <Moon className="w-5 h-5 text-amber-400" /> : <Sun className="w-5 h-5 text-amber-500" />}

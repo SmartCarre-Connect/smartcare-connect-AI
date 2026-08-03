@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
 import { PremiumButton } from '../components/ui/PremiumButton';
 import QuickActions from '../components/dashboard/QuickActions';
+import UserGuideModal from '../components/UserGuideModal';
 
 const AnimatedCircle = ({ score }) => {
   const radius = 50;
@@ -49,6 +50,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ reports: [], reminders: [], wellness: null });
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,9 +118,9 @@ export default function Dashboard() {
                 <Link to="/reports">
                   <PremiumButton variant="secondary" icon={FileText}>View Reports</PremiumButton>
                 </Link>
-                <Link to="/presenter">
+                <button onClick={() => setShowGuide(true)}>
                   <PremiumButton variant="secondary" icon={Play}>Watch App Tour</PremiumButton>
-                </Link>
+                </button>
               </div>
             </div>
 
@@ -251,9 +253,11 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          </GlassCard>
-        </motion.div>
-      </div>
-    </motion.div>
+                 </GlassCard>
+              </motion.div>
+            </div>
+
+            <UserGuideModal isOpen={showGuide} onClose={() => setShowGuide(false)} />
+          </motion.div>
   );
 }

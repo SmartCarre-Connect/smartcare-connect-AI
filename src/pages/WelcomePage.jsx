@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ShieldCheck, Activity, HeartPulse } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { VideoPlayerModal } from '../components/VideoPlayerModal';
+import UserGuideModal from '../components/UserGuideModal';
 
 export default function WelcomePage() {
   const { t } = useLanguage();
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-surface px-4 py-10 lg:px-8">
@@ -22,12 +22,11 @@ export default function WelcomePage() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Link to="/role-selection" className="rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 font-semibold text-white shadow-lg shadow-blue-500/20">{t('welcome.login', 'Login')}</Link>
             <Link to="/register" className="rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700">{t('welcome.register', 'Register')}</Link>
-            <Link to="/presenter" className="rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700">{t('welcome.guide', 'Watch App Tour')}</Link>
             <button
-              onClick={() => setIsVideoModalOpen(true)}
+              onClick={() => setIsGuideModalOpen(true)}
               className="rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
             >
-              {t('welcome.guideMap', 'Watch AI Guide')}
+              {t('welcome.guideMap', 'User Guide')}
             </button>
             <a href="#about" className="rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700">{t('welcome.about', 'About Hospital')}</a>
             <a href="#contact" className="rounded-2xl border border-slate-300 px-5 py-3 font-semibold text-slate-700">{t('welcome.contact', 'Contact')}</a>
@@ -79,12 +78,11 @@ export default function WelcomePage() {
         </div>
       </div>
 
-      {/* Video Player Modal */}
-      <VideoPlayerModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        videoSrc="/videos/ai-guide.mp4"
-      />
-    </div>
+        {/* User Guide Modal */}
+        <UserGuideModal
+          isOpen={isGuideModalOpen}
+          onClose={() => setIsGuideModalOpen(false)}
+        />
+      </div>
   );
 }

@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Language, UserProfile } from '../types';
 import { translations } from '../data/translations';
-import { VideoPlayerModal } from './VideoPlayerModal';
 import {
   Sparkles,
   Globe,
   PhoneCall,
-  Video,
   LogOut,
   User,
   Stethoscope,
@@ -32,7 +30,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAiCallAgent,
 }) => {
   const t = translations[currentLanguage];
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const roleIcons = {
     patient: User,
@@ -42,14 +39,6 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const RoleIcon = roleIcons[currentUser.role] || User;
-
-  const handleOpenVideoGuide = () => {
-    setIsVideoModalOpen(true);
-    // Also call the original callback if needed
-    if (onOpenAiGuide) {
-      onOpenAiGuide();
-    }
-  };
 
   return (
     <>
@@ -75,14 +64,14 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action Controls & Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* AI Avatar Walkthrough Launcher */}
+            {/* AI Guide Launcher */}
             <button
               type="button"
-              onClick={handleOpenVideoGuide}
+              onClick={onOpenAiGuide}
               className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
               title={t.watchAiGuide}
             >
-              <Video className="w-4 h-4 text-sky-600" />
+              <span>?</span>
               <span className="hidden sm:inline">{t.watchAiGuide}</span>
             </button>
 
@@ -137,13 +126,6 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </header>
-
-      {/* Video Player Modal */}
-      <VideoPlayerModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-        videoSrc="/videos/ai-guide.mp4"
-      />
     </>
   );
 };

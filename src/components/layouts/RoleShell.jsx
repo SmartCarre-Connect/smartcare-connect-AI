@@ -4,31 +4,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from '../layout/Sidebar';
 import FloatingAssistant from '../../components/ui/FloatingAssistant';
-import OnboardingUI from '../../onboarding/OnboardingUI';
-import { useOnboarding } from '../../onboarding/OnboardingContext';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function RoleShell() {
   const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const onboarding = useOnboarding();
   const { language } = useLanguage();
-
-  // Start onboarding automatically if user has not completed onboarding for their role
-  React.useEffect(() => {
-    try {
-      const completed = typeof window !== 'undefined' && (
-        window.localStorage.getItem(`smartcare-onboarding-complete:${user?.role}`) === 'true' ||
-        window.localStorage.getItem(`guide_completed_${user?.role}`) === 'true'
-      );
-      if (!completed && onboarding && !onboarding.active && user?.role) {
-        onboarding.start({ role: user.role, language: language });
-      }
-    } catch (e) {
-      // ignore
-    }
-  }, [user?.role, onboarding, language]);
 
   if (loading) {
     return (
@@ -75,10 +57,9 @@ export default function RoleShell() {
               </motion.div>
             </AnimatePresence>
           </div>
-        </main>
-          <FloatingAssistant />
-          {onboarding?.active ? <OnboardingUI /> : null}
-      </div>
+          </main>
+            <FloatingAssistant />
+        </div>
     </div>
   );
 }

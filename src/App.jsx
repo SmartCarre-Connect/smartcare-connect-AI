@@ -3,7 +3,6 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
-import { OnboardingProvider } from './onboarding/OnboardingContext';
 import RoleShell from './components/layouts/RoleShell';
 import { roleHome } from './utils/rbac';
 import RoleRoute from './routes/RoleRoute';
@@ -35,15 +34,11 @@ import VitalsTrackerPage from './pages/VitalsTrackerPage';
 import AttendancePage from './pages/AttendancePage';
 import HospitalMapPage from './pages/HospitalMapPage';
 import HelpCenter from './pages/HelpCenter';
-import AIVirtualPresenter from './pages/AIVirtualPresenter';
-import PresentationManager from './pages/PresentationManager';
 import PatientDashboard from './pages/roleDashboards/PatientDashboard';
 import DoctorDashboard from './pages/roleDashboards/DoctorDashboard';
 import TraineeDashboard from './pages/roleDashboards/TraineeDashboard';
 import HrDashboard from './pages/roleDashboards/HrDashboard';
 import AdminDashboardPage from './pages/AdminDashboard';
-import IntroVideoPage from './pages/IntroVideoPage';
-import OnboardingPage from './pages/OnboardingPage';
 
 function InitialRouteRedirect() {
   const { user, selectedRole, loading } = useAuth();
@@ -74,22 +69,17 @@ export function App() {
     <ThemeProvider>
       <AuthProvider>
         <LanguageProvider>
-          <OnboardingProvider>
           <Router>
             <Routes>
               <Route path="/" element={<InitialRouteRedirect />} />
               <Route path="/language-selection" element={<LanguageSelectionPage />} />
-              <Route path="/intro-video" element={<RequireLanguageSelection><IntroVideoPage /></RequireLanguageSelection>} />
               <Route path="/splash" element={<SplashScreen />} />
               <Route path="/welcome" element={<RequireLanguageSelection><WelcomePage /></RequireLanguageSelection>} />
               <Route path="/login" element={<RequireLanguageSelection><Login /></RequireLanguageSelection>} />
               <Route path="/register" element={<RequireLanguageSelection><Register /></RequireLanguageSelection>} />
               <Route path="/role-selection" element={<RequireLanguageSelection><RoleSelectionPage /></RequireLanguageSelection>} />
-              <Route path="/onboarding" element={<RequireLanguageSelection><OnboardingPage /></RequireLanguageSelection>} />
-              <Route path="/presenter" element={<AIVirtualPresenter />} />
               <Route path="/hospital-map" element={<HospitalMapPage />} />
               <Route path="/help-center" element={<HelpCenter />} />
-              <Route path="/presenter-manager" element={<RoleRoute allowedRoles={["admin"]}><PresentationManager /></RoleRoute>} />
 
             <Route element={<RoleShell />}>
               <Route index element={<Dashboard />} />
@@ -124,7 +114,6 @@ export function App() {
               <Route path="*" element={<InitialRouteRedirect />} />
             </Routes>
           </Router>
-          </OnboardingProvider>
         </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -187,54 +187,40 @@ function HelpCenter() {
               AI Help Center
             </div>
             <h2 className="text-xl font-bold text-slate-900">How SmartCare AI can help</h2>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Use this AI-powered help center for app guidance, hospital navigation, appointment help, emergency procedures, insurance support and more.
-            </p>
-          </div>
-          <div className="rounded-3xl border border-slate-200 bg-brand-50 p-4 mt-4">
-            <p className="text-sm font-semibold text-brand-900">Need a narrated video guide?</p>
-            <p className="text-sm text-brand-700 mt-2">Use the premium AI virtual presenter for an interactive narrated walkthrough in English, Hindi, or Marathi.</p>
-          </div>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Use this AI-powered help center for app guidance, hospital navigation, appointment help, emergency procedures, insurance support and more.
+              </p>
+            </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-4 mt-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Call the AI Help Agent</p>
-                <p className="text-sm text-slate-500 mt-2">Get instant answers for hospital services, navigation, appointments, and app usage in plain language.</p>
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 mt-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Call the AI Help Agent</p>
+                  <p className="text-sm text-slate-500 mt-2">Get instant answers for hospital services, navigation, appointments, and app usage in plain language.</p>
+                </div>
+                <button
+                  onClick={callHelpAgent}
+                  className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 transition"
+                >
+                  Call Agent
+                </button>
               </div>
-              <button
-                onClick={callHelpAgent}
-                className="rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 transition"
-              >
-                Call Agent
-              </button>
             </div>
-          </div>
 
-          <div className="grid gap-4">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-semibold text-slate-900">Ask about hospital locations</p>
-              <p className="text-sm text-slate-500 mt-2">"Where is the pediatric department?"</p>
+            <div className="grid gap-4">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-900">Ask about hospital locations</p>
+                <p className="text-sm text-slate-500 mt-2">"Where is the pediatric department?"</p>
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-900">Get app usage help</p>
+                <p className="text-sm text-slate-500 mt-2">"How do I update my profile and notifications?"</p>
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-900">Learn about emergency support</p>
+                <p className="text-sm text-slate-500 mt-2">"What should I do if a patient needs urgent help?"</p>
+              </div>
             </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-semibold text-slate-900">Get app usage help</p>
-              <p className="text-sm text-slate-500 mt-2">"How do I update my profile and notifications?"</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-semibold text-slate-900">Learn about emergency support</p>
-              <p className="text-sm text-slate-500 mt-2">"What should I do if a patient needs urgent help?"</p>
-            </div>
-            <div className="rounded-3xl border border-brand-200 bg-brand-50 p-5">
-              <p className="text-sm font-semibold text-brand-900">Watch the video walkthrough</p>
-              <p className="text-sm text-brand-700 mt-2">Go to Hospital Map for the AI avatar tutorial in English, Hindi, or Marathi.</p>
-              <Link
-                to="/presenter"
-                className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
-              >
-                Open AI Virtual Presenter
-              </Link>
-            </div>
-          </div>
         </Card>
       </div>
     </div>
