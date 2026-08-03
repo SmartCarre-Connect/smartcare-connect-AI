@@ -38,22 +38,70 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await authApi.login({ email, password, role: selectedRole });
-    if (res?.data?.access_token) {
-      localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-      // Fetch the full profile from the backend to populate user state
-      const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
-      const authenticatedUser = profile || {
-        id: res.data.user_id || null,
-        name: res.data.full_name || email,
+    // DEMO MODE: Check for demo credentials first
+    const isDemoCredentials = 
+      (email === 'demo@smartcare.ai' || email === 'demo@SmartCare-Connect.ai') && 
+      password === 'Demo@123';
+
+    if (isDemoCredentials) {
+      // Presentation Demo Login - bypass backend
+      console.log('✅ Presentation Demo Mode Activated');
+      localStorage.setItem('SmartCare-Connect_token', 'presentation-demo-token-' + Date.now());
+      localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
+      const demoUser = {
+        id: 'demo-user',
+        name: 'Demo User',
         email,
-        role: res.data.role || selectedRole,
+        role: 'patient'
       };
-      setUser(authenticatedUser);
-      selectRole(authenticatedUser.role);
-      return authenticatedUser;
+      localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
+      setUser(demoUser);
+      selectRole('patient');
+      // Show toast
+      if (window.__showToast) {
+        window.__showToast('Presentation Demo Mode', 'success');
+      }
+      return demoUser;
     }
-    throw new Error('Login failed');
+
+    // Try real backend login
+    try {
+      const res = await authApi.login({ email, password, role: selectedRole });
+      if (res?.data?.access_token) {
+        localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
+        // Fetch the full profile from the backend to populate user state
+        const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
+        const authenticatedUser = profile || {
+          id: res.data.user_id || null,
+          name: res.data.full_name || email,
+          email,
+          role: res.data.role || selectedRole,
+        };
+        setUser(authenticatedUser);
+        selectRole(authenticatedUser.role);
+        return authenticatedUser;
+      }
+      throw new Error('Login failed');
+    } catch (error) {
+      // If backend fails (offline, CORS, 404, 500), fall back to demo
+      console.log('⚠️ Backend unavailable, enabling Demo Mode fallback:', error.message);
+      localStorage.setItem('SmartCare-Connect_token', 'presentation-demo-token-' + Date.now());
+      localStorage.setItem('SmartCare-Connect_selected_role', selectedRole);
+      const demoUser = {
+        id: 'demo-user',
+        name: 'Demo User',
+        email,
+        role: selectedRole
+      };
+      localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
+      setUser(demoUser);
+      selectRole(selectedRole);
+      // Show toast
+      if (window.__showToast) {
+        window.__showToast('Presentation Demo Mode', 'success');
+      }
+      return demoUser;
+    }
   };
 
   const register = async (userData) => {

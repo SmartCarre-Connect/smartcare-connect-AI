@@ -70,8 +70,16 @@ export default function Login() {
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: 'demo@SmartCare-Connect.ai', password: 'demo1234' }
+    defaultValues: { email: 'demo@smartcare.ai', password: 'Demo@123' }
   });
+
+  // Setup toast function globally
+  useEffect(() => {
+    window.__showToast = (message, type = 'info') => {
+      // Show as simple alert or console for now
+      console.log(`[${type.toUpperCase()}] ${message}`);
+    };
+  }, []);
 
   const onSubmit = async (data) => {
     try {
@@ -79,17 +87,7 @@ export default function Login() {
       await login(data.email, data.password);
       navigate(roleHome(selectedRole || 'patient'));
     } catch (err) {
-      // User-friendly error message for presentation mode
-      const errorMessage = err.response?.data?.detail || 
-                          t('login.invalidCredentials', 'Invalid email or password');
-
-      // If demo credentials were used and backend is unavailable, provide guidance
-      if (data.email === 'demo@smartcare.ai' && 
-          (err.code === 'ECONNABORTED' || err.response?.status >= 500 || err.message?.includes('Network'))) {
-        setError('📱 Demo Mode: Using presentation credentials. You should now be logged in! Please refresh or try again.');
-      } else {
-        setError(errorMessage);
-      }
+      setError(err.response?.data?.detail || t('login.invalidCredentials', 'Invalid email or password'));
     }
   };
 

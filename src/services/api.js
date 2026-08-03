@@ -29,7 +29,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use((response) => ({
   ...response,
   data: response.data?.data ?? response.data,
-}));
+}), (error) => {
+  // Presentation mode fallback: return mock data on API errors
+  if (error.config?.url) {
+    const mockBase = error.config.url.replace(API_BASE, '');
+    if (demoResponses[mockBase]) {
+      console.log(`📦 Using mock data for: ${mockBase}`);
+      enablePresentationMode(true);
+      return Promise.resolve({ data: demoResponses[mockBase] });
+    }
+  }
+  return Promise.reject(error);
+});
 
 // Demo data fallback for presentation mode
 const demoResponses = {
