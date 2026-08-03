@@ -24,11 +24,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // ========================================
-    // PRESENTATION MODE - REMOVE AFTER DEMO
-    // ========================================
     // Check if this is a demo token (presentation/demo login)
-    // Accept tokens prefixed with 'demo-' to support offline demo mode.
     const isDemoToken = typeof token === 'string' && token.startsWith('demo-');
 
     if (isDemoToken) {
@@ -36,26 +32,29 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('SmartCare-Connect_user');
       if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          console.log('✅ Loaded demo user from localStorage:', parsedUser);
+          setUser(parsedUser);
           setLoading(false);
           return;
         } catch (e) {
           console.error('Failed to parse demo user:', e);
+          setLoading(false);
+          return;
         }
       }
-      // If no stored user found, proceed to clear token and continue with normal flow
+      // If no stored user, still mark loading as false
+      console.warn('Demo token found but no stored user');
+      setLoading(false);
+      return;
     }
-    // ========================================
-    // END PRESENTATION MODE
-    // ========================================
 
-    // If a token exists, validate it by fetching current user profile (real backend)
+    // Production mode: validate real token with backend
     authApi.getMe()
       .then((res) => {
         setUser(res.data || null);
       })
       .catch(() => {
-        // Token invalid or backend unreachable: clear token and reset user.
         localStorage.removeItem('SmartCare-Connect_token');
         setUser(null);
       })
