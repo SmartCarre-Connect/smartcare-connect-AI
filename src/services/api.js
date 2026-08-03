@@ -7,6 +7,10 @@ const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1
 // Global flag to enable presentation mode (fallback to demo data when backend fails)
 let presentationModeEnabled = false;
 
+const isDemoCredentialPayload = (credentials) =>
+  (credentials?.email === 'demo@smartcare.ai' || credentials?.email === 'demo@SmartCare-Connect.ai') &&
+  credentials?.password === 'Demo@123';
+
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -103,20 +107,16 @@ export function isPresentationMode() {
 export const authApi = {
   login: async (credentials) => {
     try {
-      // Allow demo credentials to work in presentation mode
-      if (credentials.email === 'demo@smartcare.ai' && credentials.password === 'Demo@123') {
+      if (isDemoCredentialPayload(credentials)) {
         enablePresentationMode(true);
-        return {
-          data: demoResponses['/auth/login'],
-        };
+        return api.post('/auth/login', credentials);
       }
       return api.post('/auth/login', credentials);
     } catch (error) {
-      // Network error, timeout, or server error - use demo fallback
-      if (presentationModeEnabled || 
-          error.code === 'ECONNABORTED' || 
+      if (presentationModeEnabled ||
+          error.code === 'ECONNABORTED' ||
           error.code === 'ERR_NETWORK' ||
-          !error.response || 
+          !error.response ||
           error.response?.status >= 500) {
         enablePresentationMode(true);
         console.log('✅ Demo mode activated: Using demo credentials for demo@smartcare.ai');

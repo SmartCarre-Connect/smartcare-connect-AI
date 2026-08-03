@@ -61,55 +61,42 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    // PRESENTATION DEMO MODE: Check for demo credentials and skip backend entirely
-    const isDemoCredentials = 
-      (email === 'demo@smartcare.ai' || email === 'demo@SmartCare-Connect.ai') && 
-      password === 'Demo@123';
+    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedPassword = password?.trim();
+    const demoCredentials =
+      (normalizedEmail === 'demo@smartcare.ai' || normalizedEmail === 'demo@SmartCare-Connect.ai') &&
+      normalizedPassword === 'Demo@123';
 
-    if (isDemoCredentials) {
-      // 🎭 PRESENTATION MODE - No API call, instant local login
-      console.log('✅ Presentation Demo Mode: Instant local login activated');
-
-      // Create local demo session
-      const demoToken = 'demo-token-' + Date.now();
-      const demoUser = {
-        id: 'demo-patient-001',
-        name: 'Demo Patient',
-        email: 'demo@smartcare.ai',
-        role: 'patient'
-      };
-
-      // Store session in localStorage (no backend needed)
-      localStorage.setItem('SmartCare-Connect_token', demoToken);
-      localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
-
-      // Update React state
-      setUser(demoUser);
-      selectRole('patient');
-
-      return demoUser;
-    }
-
-    // REAL LOGIN: Call backend for actual credentials
     try {
-      const res = await authApi.login({ email, password, role: selectedRole });
+      const res = await authApi.login({
+        email: normalizedEmail,
+        password: normalizedPassword,
+        role: selectedRole,
+      });
+
       if (res?.data?.access_token) {
         localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-        // Fetch the full profile from the backend to populate user state
         const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
         const authenticatedUser = profile || {
           id: res.data.user_id || null,
           name: res.data.full_name || email,
-          email,
+          email: res.data.email || normalizedEmail,
           role: res.data.role || selectedRole,
         };
+
+        localStorage.setItem('SmartCare-Connect_user', JSON.stringify(authenticatedUser));
         setUser(authenticatedUser);
-        selectRole(authenticatedUser.role);
+        selectRole(authenticatedUser.role || selectedRole || 'patient');
+
+        if (demoCredentials) {
+          localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
+        }
+
         return authenticatedUser;
       }
+
       throw new Error('Login failed');
     } catch (error) {
-      // Backend failed - re-throw so UI can show error
       throw error;
     }
   };
@@ -134,6 +121,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('SmartCare-Connect_token');
+    localStorage.removeItem('SmartCare-Connect_user');
+    localStorage.removeItem('SmartCare-Connect_selected_role');
     setUser(null);
   };
 

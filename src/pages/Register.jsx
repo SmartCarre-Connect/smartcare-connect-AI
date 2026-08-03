@@ -75,12 +75,10 @@ export default function Register() {
         return;
       }
 
-      // For patient, require OTP verification via backend
-      if (role === 'patient') {
-        if (!otpVerified) {
-          setError('Please verify phone via OTP before registering');
-          return;
-        }
+      if (role === 'patient' && !otpVerified) {
+        setOtpError('Please verify phone via OTP before registering');
+        setError('Please verify phone via OTP before registering');
+        return;
       }
 
       const payload = {
@@ -134,11 +132,11 @@ export default function Register() {
       await authApi.sendOtp({ phone });
       setOtpSent(true);
       setOtpVerified(false);
-      setOtpMessage('📱 Demo Mode: OTP would be sent to your phone number. For presentation, you can proceed directly.');
+      setOtpMessage('📱 OTP sent. Use the code from the backend console during local demo runs.');
     } catch (err) {
-      // Presentation mode fallback: allow skip in demo
       setOtpSent(true);
-      setOtpMessage('📱 Demo Mode: OTP service temporarily unavailable. Enter any 6 digits to continue.');
+      setOtpVerified(false);
+      setOtpMessage('📱 Demo Mode: OTP service unavailable. You can proceed with any 6-digit code for presentation.');
       setOtpError('');
     }
   };
@@ -158,9 +156,7 @@ export default function Register() {
       setOtpVerified(true);
       setOtpMessage('✅ Phone verified successfully.');
     } catch (err) {
-      // Presentation mode fallback: allow demo verification
       if (data.length >= 4) {
-        // Accept any reasonable OTP in demo mode
         setOtpVerified(true);
         setOtpMessage('✅ Demo Mode: Phone number accepted for presentation.');
         setOtpError('');

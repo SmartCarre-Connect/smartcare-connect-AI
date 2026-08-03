@@ -85,54 +85,12 @@ export default function Login() {
     try {
       setError('');
 
-      // ========================================
-      // PRESENTATION MODE - REMOVE AFTER DEMO
-      // ========================================
-      // Check if demo credentials are being used
-      const isDemoEmail = (data.email === 'demo@smartcare.ai' || data.email === 'demo@SmartCare-Connect.ai');
-      const isDemoPassword = data.password === 'Demo@123';
-
-      if (isDemoEmail && isDemoPassword) {
-        // 🎭 PRESENTATION MODE: Bypass backend entirely
-        console.log('🎭 PRESENTATION MODE: Demo login detected - skipping backend');
-
-        // Create fake JWT token
-        const fakeJWT = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZW1vLXBhdGllbnQtMDAxIiwibmFtZSI6IkRlbW8gUGF0aWVudCIsImVtYWlsIjoiZGVtb0BzbWFydGNhcmUuYWkiLCJyb2xlIjoicGF0aWVudCIsImlhdCI6JHtEYXRlLm5vdygpfSwiZXhwIjoke0RhdGUubm93KCkgKyA4NjQwMDAwMH19.demo-signature-${Date.now()}`;
-
-        // Create demo user object
-        const demoUser = {
-          id: 'demo-patient-001',
-          name: 'Demo Patient',
-          email: data.email,
-          role: 'patient'
-        };
-
-        // Store in localStorage (no backend needed)
-        localStorage.setItem('SmartCare-Connect_token', fakeJWT);
-        localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
-        localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
-
-        // Update auth context
-        selectRole('patient');
-
-        // Show success toast
-        if (window.__showToast) {
-          window.__showToast('Demo login successful.', 'success');
-        } else {
-          console.log('✅ Demo login successful');
-        }
-
-        // Navigate directly to patient dashboard
-        navigate('/patient');
-        return;
-      }
-      // ========================================
-      // END PRESENTATION MODE
-      // ========================================
-
-      // Real login: Call backend for actual credentials
       await login(data.email, data.password);
-      // Redirect to patient dashboard immediately
+
+      if (window.__showToast) {
+        window.__showToast('Login successful.', 'success');
+      }
+
       navigate(roleHome(selectedRole || 'patient'));
     } catch (err) {
       const errorMsg = err.response?.data?.detail || err.message || t('login.invalidCredentials', 'Invalid email or password');
