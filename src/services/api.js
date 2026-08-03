@@ -109,9 +109,11 @@ export function isPresentationMode() {
 export const authApi = {
   login: async (credentials) => {
     try {
+      // For demo credentials, ALWAYS use demo mode - skip backend call
       if (isDemoCredentialPayload(credentials)) {
         enablePresentationMode(true);
-        return api.post('/auth/login', credentials);
+        console.log('✅ Demo mode: Using demo credentials for demo@smartcare.ai');
+        return { data: demoResponses['/auth/login'] };
       }
       return api.post('/auth/login', credentials);
     } catch (error) {
