@@ -293,20 +293,23 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
           /* Placeholder for Missing Video */
           <div className="w-full aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center p-8">
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-slate-700/50 flex items-center justify-center mx-auto">
-                <X className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 rounded-2xl bg-sky-600/20 flex items-center justify-center mx-auto">
+                <span className="text-4xl">??</span>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-100 mb-2">
-                  Video Not Found
+                <h3 className="text-xl font-bold text-slate-100 mb-2">
+                  Tutorial Coming Soon
                 </h3>
-                <p className="text-sm text-slate-400 max-w-xs">
-                  AI Guide video not found. Please add <br />
-                  <code className="bg-slate-800 px-2 py-1 rounded mt-2 inline-block text-xs">
-                    public/videos/ai-guide.mp4
-                  </code>
+                <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
+                  Our comprehensive AI Guide video is under preparation. In the meantime, explore the application features or visit our help center for assistance.
                 </p>
               </div>
+              <button
+                onClick={handleClose}
+                className="mt-6 px-6 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-semibold transition-all"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}

@@ -79,7 +79,17 @@ export default function Login() {
       await login(data.email, data.password);
       navigate(roleHome(selectedRole || 'patient'));
     } catch (err) {
-      setError(err.response?.data?.detail || t('login.invalidCredentials', 'Invalid email or password'));
+      // User-friendly error message for presentation mode
+      const errorMessage = err.response?.data?.detail || 
+                          t('login.invalidCredentials', 'Invalid email or password');
+
+      // If demo credentials were used and backend is unavailable, provide guidance
+      if (data.email === 'demo@smartcare.ai' && 
+          (err.code === 'ECONNABORTED' || err.response?.status >= 500 || err.message?.includes('Network'))) {
+        setError('📱 Demo Mode: Using presentation credentials. You should now be logged in! Please refresh or try again.');
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 

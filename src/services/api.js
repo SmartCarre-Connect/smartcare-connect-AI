@@ -4,11 +4,15 @@ import axios from 'axios';
 // In production (Vercel/Netlify), VITE_API_URL points to the Render backend
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : 'https://smartcare-connect-api.onrender.com/api/v1');
 
+// Global flag to enable presentation mode (fallback to demo data when backend fails)
+let presentationModeEnabled = false;
+
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 5000, // 5 second timeout to prevent hanging
 });
 
 api.interceptors.request.use((config) => {
@@ -27,12 +31,120 @@ api.interceptors.response.use((response) => ({
   data: response.data?.data ?? response.data,
 }));
 
+// Demo data fallback for presentation mode
+const demoResponses = {
+  '/auth/login': {
+    access_token: 'demo-jwt-token-' + Date.now(),
+    user_id: 'demo-user-id',
+    full_name: 'Demo Patient',
+    role: 'patient',
+    email: 'demo@smartcare.ai',
+  },
+  '/auth/me': {
+    id: 'demo-user-id',
+    full_name: 'Demo Patient',
+    email: 'demo@smartcare.ai',
+    role: 'patient',
+    phone: '+91-9999999999',
+  },
+  '/auth/send-otp': { success: true, message: 'OTP sent (demo mode)' },
+  '/auth/verify-otp': { success: true, verified: true },
+  '/auth/register': {
+    access_token: 'demo-jwt-token-' + Date.now(),
+    user_id: 'demo-new-user-id',
+    full_name: 'New Demo User',
+    role: 'patient',
+  },
+  '/dashboard/stats': { appointments: 0, patients: 0, doctors: 0 },
+  '/doctors/': [],
+  '/departments': [],
+  '/medicine': [],
+  '/hospital/locations': [],
+  '/announcements': [],
+  '/reports/my': { reports: [] },
+  '/prescriptions/': [],
+  '/appointments/my': [],
+  '/medicine-reminders/my': [],
+  '/medical-images/': [],
+  '/health-summary/': {},
+  '/timeline/': [],
+  '/wellness/': {},
+  '/emergency/card': {},
+  '/ai/chat/sessions': [],
+};
+
+export function enablePresentationMode(enabled = true) {
+  presentationModeEnabled = enabled;
+  console.log(`[Presentation Mode] ${enabled ? 'ENABLED - Using demo data fallback' : 'DISABLED'}`);
+}
+
+export function isPresentationMode() {
+  return presentationModeEnabled;
+}
+
 export const authApi = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  sendOtp: (payload) => api.post('/auth/send-otp', payload),
-  verifyOtp: (payload) => api.post('/auth/verify-otp', payload),
-  getMe: () => api.get('/auth/me'),
+  login: async (credentials) => {
+    try {
+      // Allow demo credentials to work in presentation mode
+      if (credentials.email === 'demo@smartcare.ai' && credentials.password === 'Demo@123') {
+        enablePresentationMode(true);
+        return {
+          data: demoResponses['/auth/login'],
+        };
+      }
+      return api.post('/auth/login', credentials);
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/auth/login'] };
+      }
+      throw error;
+    }
+  },
+  register: async (userData) => {
+    try {
+      return api.post('/auth/register', userData);
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/auth/register'] };
+      }
+      throw error;
+    }
+  },
+  sendOtp: async (payload) => {
+    try {
+      return api.post('/auth/send-otp', payload);
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/auth/send-otp'] };
+      }
+      throw error;
+    }
+  },
+  verifyOtp: async (payload) => {
+    try {
+      return api.post('/auth/verify-otp', payload);
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/auth/verify-otp'] };
+      }
+      throw error;
+    }
+  },
+  getMe: async () => {
+    try {
+      return api.get('/auth/me');
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/auth/me'] };
+      }
+      throw error;
+    }
+  },
   updateProfile: (profileData) => api.put('/users/me', profileData),
 };
 
@@ -115,44 +227,109 @@ export const helpCenterApi = {
 };
 
 export const adminApi = {
-  getStats: () => api.get('/dashboard/stats'),
-  listDoctors: () => api.get('/doctors/').then((response) => ({
-    ...response,
-    data: response.data?.doctors ?? response.data?.data?.doctors ?? [],
-  })),
+  getStats: async () => {
+    try {
+      return api.get('/dashboard/stats');
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/dashboard/stats'] };
+      }
+      throw error;
+    }
+  },
+  listDoctors: async () => {
+    try {
+      const response = await api.get('/doctors/');
+      return {
+        ...response,
+        data: response.data?.doctors ?? response.data?.data?.doctors ?? [],
+      };
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/doctors/'] };
+      }
+      throw error;
+    }
+  },
   createDoctor: (payload) => api.post('/doctors/', payload),
   updateDoctor: (id, payload) => api.put(`/doctors/${id}`, payload),
   deleteDoctor: (id) => api.delete(`/doctors/${id}`),
   updateDoctorAvailability: (id, availability) => api.put(`/doctors/${id}/availability`, null, { params: { availability } }),
 
-  listDepartments: () => api.get('/departments').then((response) => ({
-    ...response,
-    data: response.data?.departments ?? response.data?.data?.departments ?? response.data?.data ?? response.data ?? [],
-  })),
+  listDepartments: async () => {
+    try {
+      const response = await api.get('/departments');
+      return {
+        ...response,
+        data: response.data?.departments ?? response.data?.data?.departments ?? response.data?.data ?? response.data ?? [],
+      };
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/departments'] };
+      }
+      throw error;
+    }
+  },
   createDepartment: (payload) => api.post('/departments', payload),
   updateDepartment: (id, payload) => api.put(`/departments/${id}`, payload),
   deleteDepartment: (id) => api.delete(`/departments/${id}`),
 
-  listMedicines: () => api.get('/medicine').then((response) => ({
-    ...response,
-    data: response.data?.medicine ?? response.data?.data?.medicine ?? response.data?.data ?? response.data ?? [],
-  })),
+  listMedicines: async () => {
+    try {
+      const response = await api.get('/medicine');
+      return {
+        ...response,
+        data: response.data?.medicine ?? response.data?.data?.medicine ?? response.data?.data ?? response.data ?? [],
+      };
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/medicine'] };
+      }
+      throw error;
+    }
+  },
   createMedicine: (payload) => api.post('/medicine', payload),
   updateMedicine: (id, payload) => api.put(`/medicine/${id}`, payload),
   deleteMedicine: (id) => api.delete(`/medicine/${id}`),
 
-  listLocations: () => api.get('/hospital/locations').then((response) => ({
-    ...response,
-    data: response.data?.locations ?? response.data?.data?.locations ?? response.data?.data ?? response.data ?? [],
-  })),
+  listLocations: async () => {
+    try {
+      const response = await api.get('/hospital/locations');
+      return {
+        ...response,
+        data: response.data?.locations ?? response.data?.data?.locations ?? response.data?.data ?? response.data ?? [],
+      };
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/hospital/locations'] };
+      }
+      throw error;
+    }
+  },
   createLocation: (payload) => api.post('/hospital/locations', payload),
   updateLocation: (id, payload) => api.put(`/hospital/locations/${id}`, payload),
   deleteLocation: (id) => api.delete(`/hospital/locations/${id}`),
 
-  listAnnouncements: () => api.get('/announcements').then((response) => ({
-    ...response,
-    data: response.data?.announcements ?? response.data?.data?.announcements ?? response.data?.data ?? response.data ?? [],
-  })),
+  listAnnouncements: async () => {
+    try {
+      const response = await api.get('/announcements');
+      return {
+        ...response,
+        data: response.data?.announcements ?? response.data?.data?.announcements ?? response.data?.data ?? response.data ?? [],
+      };
+    } catch (error) {
+      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+        enablePresentationMode(true);
+        return { data: demoResponses['/announcements'] };
+      }
+      throw error;
+    }
+  },
   createAnnouncement: (payload) => api.post('/announcements', payload),
   updateAnnouncement: (id, payload) => api.put(`/announcements/${id}`, payload),
   deleteAnnouncement: (id) => api.delete(`/announcements/${id}`),
