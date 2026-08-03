@@ -27,11 +27,12 @@ export const AuthProvider = ({ children }) => {
     // ========================================
     // PRESENTATION MODE - REMOVE AFTER DEMO
     // ========================================
-    // Check if this is a demo token (demo login)
-    const isDemoToken = token.includes('demo-signature-');
+    // Check if this is a demo token (presentation/demo login)
+    // Accept tokens prefixed with 'demo-' to support offline demo mode.
+    const isDemoToken = typeof token === 'string' && token.startsWith('demo-');
 
     if (isDemoToken) {
-      // Use stored demo user data
+      // Use stored demo user data (saved during demo login)
       const storedUser = localStorage.getItem('SmartCare-Connect_user');
       if (storedUser) {
         try {
@@ -42,6 +43,7 @@ export const AuthProvider = ({ children }) => {
           console.error('Failed to parse demo user:', e);
         }
       }
+      // If no stored user found, proceed to clear token and continue with normal flow
     }
     // ========================================
     // END PRESENTATION MODE

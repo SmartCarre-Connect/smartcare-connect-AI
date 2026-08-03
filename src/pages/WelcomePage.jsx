@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ShieldCheck, Activity, HeartPulse } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import UserGuideModal from '../components/UserGuideModal';
+import { roleHome } from '../utils/rbac';
 
 export default function WelcomePage() {
   const { t } = useLanguage();
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If a valid token exists, skip the welcome page and go to dashboard
+    const token = typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_token');
+    if (token) {
+      const role = (typeof window !== 'undefined' && (window.localStorage.getItem('SmartCare-Connect_selected_role') || 'patient'));
+      navigate(roleHome(role), { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-surface px-4 py-10 lg:px-8">

@@ -55,7 +55,16 @@ const AnimCounter = ({ end, suffix = '', label }) => {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, selectedRole, selectRole } = useAuth();
+  const { login, selectedRole, selectRole, user } = useAuth();
+
+  useEffect(() => {
+    // If already authenticated via user or token, skip login
+    const token = typeof window !== 'undefined' && window.localStorage.getItem('SmartCare-Connect_token');
+    if (user || token) {
+      const role = (user?.role || selectedRole || (typeof window !== 'undefined' && (window.localStorage.getItem('SmartCare-Connect_selected_role') || 'patient')));
+      navigate(roleHome(role), { replace: true });
+    }
+  }, [user, selectedRole, navigate]);
   const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
@@ -81,39 +90,57 @@ export default function Login() {
     };
   }, []);
 
-  const onSubmit = (data) => {
-    // Presentation-only login: accept only demo credentials and do NOT call backend
+  const onSubmit = async (data) => {
     setError('');
 
     const email = (data.email || '').trim().toLowerCase();
     const password = data.password || '';
+    const RESTRICT_TO_DEMO = (import.meta.env.VITE_RESTRICT_TO_DEMO || 'false').toString() === 'true';
 
-    if ((email === 'demo@smartcare.ai' || email === 'demo@smartcare-connect.ai') && password === 'Demo@123') {
-      const demoUser = {
-        user_id: 'demo-user-' + Date.now(),
-        email: data.email,
-        full_name: 'Demo Patient',
-        role: 'patient',
-        profile_image: '',
-      };
+    // If app is running in demo-restricted mode, accept only demo credentials and do NOT call backend
+    if (RESTRICT_TO_DEMO) {
+      if ((email === 'demo@smartcare.ai' || email === 'demo@smartcare-connect.ai') && password === 'Demo@123') {
+        const demoUser = {
+          user_id: 'demo-user-' + Date.now(),
+          email: data.email,
+          full_name: 'Demo Patient',
+          role: 'patient',
+          profile_image: '',
+        };
 
-      // Save fake token and demo user info
-      localStorage.setItem('SmartCare-Connect_token', 'demo-jwt-' + Date.now());
-      localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
-      // Use the same key AuthContext expects for selected role
-      localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
+        // Save fake token and demo user info
+        localStorage.setItem('SmartCare-Connect_token', 'demo-' + Date.now());
+        localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
+        localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
 
-      if (window.__showToast) {
-        window.__showToast('Demo Login Successful', 'success');
+        if (window.__showToast) {
+          window.__showToast('Demo Login Successful', 'success');
+        }
+
+        // Navigate directly to patient dashboard
+        navigate(roleHome('patient'), { replace: true });
+        return;
       }
 
-      // Navigate directly to patient dashboard
-      navigate(roleHome('patient'));
+      setError('Invalid demo credentials.');
       return;
     }
 
-    // For presentation/demo mode we do not contact backend. Show a clear message.
-    setError('Invalid demo credentials.');
+    // Production mode: call real login flow
+    try {
+      await login(data.email, data.password);
+      if (window.__showToast) {
+        window.__showToast('Login successful.', 'success');
+      }
+      navigate(roleHome(selectedRole || 'patient'), { replace: true });
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || err.message || t('login.invalidCredentials', 'Invalid email or password');
+      if (err.code === 'ERR_NETWORK' || !err.response || err.response?.status >= 500) {
+        setError(errorMsg + ' (Try demo account: demo@smartcare.ai / Demo@123)');
+      } else {
+        setError(errorMsg);
+      }
+    }
   };
 
   useEffect(() => { const role = searchParams.get('role'); if (role) selectRole(role); }, [searchParams, selectRole]);

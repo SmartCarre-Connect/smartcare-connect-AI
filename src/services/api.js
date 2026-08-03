@@ -95,6 +95,8 @@ const demoResponses = {
   '/wellness/': {},
   '/emergency/card': {},
   '/ai/chat/sessions': [],
+  // Fallback for single-message AI chat POSTs
+  '/ai/chat': { session_id: 'local-demo-session', content: "Hello, I'm TwinCare AI (demo). I can't access the live AI backend right now, but I can answer simple questions for demonstration purposes." },
 };
 
 export function enablePresentationMode(enabled = true) {
