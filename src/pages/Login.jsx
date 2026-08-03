@@ -85,6 +85,29 @@ export default function Login() {
     try {
       setError('');
 
+      // Handle demo credentials directly without backend call
+      if ((data.email.toLowerCase() === 'demo@smartcare.ai' || data.email.toLowerCase() === 'demo@smartcare-connect.ai') && 
+          data.password === 'Demo@123') {
+        // Store demo user data directly
+        const demoUser = {
+          user_id: 'demo-user-' + Date.now(),
+          email: data.email,
+          full_name: 'Demo Patient',
+          role: 'patient',
+          profile_image: '',
+        };
+        
+        localStorage.setItem('SmartCare-Connect_token', 'demo-jwt-' + Date.now());
+        localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
+        localStorage.setItem('SmartCare-Connect_user_role', 'patient');
+        
+        if (window.__showToast) {
+          window.__showToast('Login successful.', 'success');
+        }
+        navigate(roleHome('patient'));
+        return;
+      }
+
       await login(data.email, data.password);
 
       if (window.__showToast) {
