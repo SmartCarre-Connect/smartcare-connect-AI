@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // In local dev, Vite proxies /api → localhost:8000 (see vite.config.js)
 // In production (Vercel/Netlify), VITE_API_URL points to the Render backend
-const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : 'https://smartcare-connect-api.onrender.com/api/v1');
+// Fallback: always use the correct Render backend URL
+const PRODUCTION_API_URL = 'https://smartcare-connect-api.onrender.com/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : PRODUCTION_API_URL);
 
 // Global flag to enable presentation mode (fallback to demo data when backend fails)
 let presentationModeEnabled = false;
