@@ -58,6 +58,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Health check endpoint for Render
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "SmartCare Connect API"}
+
 # Static files for uploads
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
