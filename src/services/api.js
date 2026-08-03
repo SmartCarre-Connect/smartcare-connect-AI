@@ -39,6 +39,13 @@ api.interceptors.response.use((response) => ({
       return Promise.resolve({ data: demoResponses[mockBase] });
     }
   }
+
+  // If backend is unreachable, enable presentation mode for any auth endpoint
+  if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response) {
+    console.warn('⚠️ Backend unreachable, enabling presentation mode');
+    enablePresentationMode(true);
+  }
+
   return Promise.reject(error);
 });
 
@@ -105,8 +112,14 @@ export const authApi = {
       }
       return api.post('/auth/login', credentials);
     } catch (error) {
-      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+      // Network error, timeout, or server error - use demo fallback
+      if (presentationModeEnabled || 
+          error.code === 'ECONNABORTED' || 
+          error.code === 'ERR_NETWORK' ||
+          !error.response || 
+          error.response?.status >= 500) {
         enablePresentationMode(true);
+        console.log('✅ Demo mode activated: Using demo credentials for demo@smartcare.ai');
         return { data: demoResponses['/auth/login'] };
       }
       throw error;
@@ -149,7 +162,12 @@ export const authApi = {
     try {
       return api.get('/auth/me');
     } catch (error) {
-      if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
+      // Network error, timeout, or server error - use demo fallback
+      if (presentationModeEnabled || 
+          error.code === 'ECONNABORTED' || 
+          error.code === 'ERR_NETWORK' ||
+          !error.response || 
+          error.response?.status >= 500) {
         enablePresentationMode(true);
         return { data: demoResponses['/auth/me'] };
       }

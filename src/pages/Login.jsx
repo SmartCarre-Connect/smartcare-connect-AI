@@ -88,7 +88,14 @@ export default function Login() {
       // Redirect to patient dashboard immediately
       navigate(roleHome(selectedRole || 'patient'));
     } catch (err) {
-      setError(err.response?.data?.detail || t('login.invalidCredentials', 'Invalid email or password'));
+      const errorMsg = err.response?.data?.detail || err.message || t('login.invalidCredentials', 'Invalid email or password');
+
+      // Suggest demo credentials if backend is unreachable
+      if (err.code === 'ERR_NETWORK' || !err.response || err.response?.status >= 500) {
+        setError(errorMsg + ' (Try demo account: demo@smartcare.ai / Demo@123)');
+      } else {
+        setError(errorMsg);
+      }
     }
   };
 
