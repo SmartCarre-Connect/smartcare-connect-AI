@@ -24,7 +24,30 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // If a token exists, validate it by fetching current user profile.
+    // ========================================
+    // PRESENTATION MODE - REMOVE AFTER DEMO
+    // ========================================
+    // Check if this is a demo token (demo login)
+    const isDemoToken = token.includes('demo-signature-');
+
+    if (isDemoToken) {
+      // Use stored demo user data
+      const storedUser = localStorage.getItem('SmartCare-Connect_user');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error('Failed to parse demo user:', e);
+        }
+      }
+    }
+    // ========================================
+    // END PRESENTATION MODE
+    // ========================================
+
+    // If a token exists, validate it by fetching current user profile (real backend)
     authApi.getMe()
       .then((res) => {
         setUser(res.data || null);
