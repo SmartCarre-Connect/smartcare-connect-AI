@@ -5,8 +5,32 @@ const AuthContext = createContext();
 const roleKey = 'SmartCare-Connect_selected_role';
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize user synchronously from localStorage if a demo token exists
+  const [user, setUser] = useState(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('SmartCare-Connect_token') : null;
+    if (token && typeof token === 'string' && token.startsWith('demo-')) {
+      const stored = typeof window !== 'undefined' ? localStorage.getItem('SmartCare-Connect_user') : null;
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error('Failed to parse initial demo user:', e);
+        }
+      }
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('SmartCare-Connect_token') : null;
+    // If demo token exists, we're not loading (sync init above handled it)
+    if (token && typeof token === 'string' && token.startsWith('demo-')) {
+      return false;
+    }
+    // Otherwise, we need to validate real token, so we're loading
+    return !!token;
+  });
+
   const [selectedRole, setSelectedRole] = useState(() => localStorage.getItem(roleKey) || 'patient');
   const [permissions, setPermissions] = useState([]);
 
@@ -16,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     setPermissions([]);
   };
 
+  // For production: validate real token asynchronously
   useEffect(() => {
     const token = localStorage.getItem('SmartCare-Connect_token');
     if (!token) {
@@ -24,32 +49,13 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Check if this is a demo token (presentation/demo login)
-    const isDemoToken = typeof token === 'string' && token.startsWith('demo-');
-
-    if (isDemoToken) {
-      // Use stored demo user data (saved during demo login)
-      const storedUser = localStorage.getItem('SmartCare-Connect_user');
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('✅ Loaded demo user from localStorage:', parsedUser);
-          setUser(parsedUser);
-          setLoading(false);
-          return;
-        } catch (e) {
-          console.error('Failed to parse demo user:', e);
-          setLoading(false);
-          return;
-        }
-      }
-      // If no stored user, still mark loading as false
-      console.warn('Demo token found but no stored user');
+    // If it's a demo token, we already loaded it synchronously above
+    if (typeof token === 'string' && token.startsWith('demo-')) {
       setLoading(false);
       return;
     }
 
-    // Production mode: validate real token with backend
+    // Production: validate real token with backend
     authApi.getMe()
       .then((res) => {
         setUser(res.data || null);
