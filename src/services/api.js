@@ -7,7 +7,8 @@ const PRODUCTION_API_URL = 'https://smartcare-connect-api.onrender.com/api/v1';
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : PRODUCTION_API_URL);
 
 // Global flag to enable presentation mode (fallback to demo data when backend fails)
-let presentationModeEnabled = false;
+// Presentation mode is enabled by default for offline/demo presentation builds.
+let presentationModeEnabled = true;
 
 const isDemoCredentialPayload = (credentials) =>
   (credentials?.email === 'demo@smartcare.ai' || credentials?.email === 'demo@SmartCare-Connect.ai') &&
@@ -108,29 +109,72 @@ export function isPresentationMode() {
   return presentationModeEnabled;
 }
 
+// Helper to resolve mock responses without calling network when presentation mode is active
+function resolveMockResponse(url) {
+  try {
+    const raw = (url || '').toString();
+    // Remove base if present
+    const mockBase = raw.replace(API_BASE, '').split('?')[0];
+    // Exact match
+    if (demoResponses[mockBase]) return demoResponses[mockBase];
+    // Try trailing slash variation
+    if (demoResponses[`${mockBase}/`]) return demoResponses[`${mockBase}/`];
+    // Try prefix match (e.g., '/doctors' matches '/doctors/')
+    const foundKey = Object.keys(demoResponses).find((k) => mockBase.startsWith(k.replace(/\/$/, '')) || k.startsWith(mockBase));
+    if (foundKey) return demoResponses[foundKey];
+    // Fallback empty object
+    return {};
+  } catch (e) {
+    return {};
+  }
+}
+
+// Override axios methods when in presentation mode to avoid network calls entirely
+const originalGet = api.get.bind(api);
+const originalPost = api.post.bind(api);
+const originalPut = api.put.bind(api);
+const originalDelete = api.delete.bind(api);
+
+api.get = (url, config) => {
+  if (presentationModeEnabled) {
+    return Promise.resolve({ data: resolveMockResponse(url) });
+  }
+  return originalGet(url, config);
+};
+api.post = (url, data, config) => {
+  if (presentationModeEnabled) {
+    return Promise.resolve({ data: resolveMockResponse(url) });
+  }
+  return originalPost(url, data, config);
+};
+api.put = (url, data, config) => {
+  if (presentationModeEnabled) {
+    return Promise.resolve({ data: resolveMockResponse(url) });
+  }
+  return originalPut(url, data, config);
+};
+api.delete = (url, config) => {
+  if (presentationModeEnabled) {
+    return Promise.resolve({ data: resolveMockResponse(url) });
+  }
+  return originalDelete(url, config);
+};
+
 export const authApi = {
   login: async (credentials) => {
+    // Do not call backend in presentation mode. Always return demo login response.
+    if (presentationModeEnabled || isDemoCredentialPayload(credentials)) {
+      enablePresentationMode(true);
+      return { data: demoResponses['/auth/login'] };
+    }
+
     try {
-      // For demo credentials, ALWAYS use demo mode - skip backend call
-      if (isDemoCredentialPayload(credentials)) {
-        enablePresentationMode(true);
-        console.log('✅ Demo mode: Using demo credentials for demo@smartcare.ai');
-        return { data: demoResponses['/auth/login'] };
-      }
       return api.post('/auth/login', credentials);
     } catch (error) {
-      if (presentationModeEnabled ||
-          error.code === 'ECONNABORTED' ||
-          error.code === 'ERR_NETWORK' ||
-          !error.response ||
-          error.response?.status >= 500) {
-        enablePresentationMode(true);
-        console.log('✅ Demo mode activated: Using demo credentials for demo@smartcare.ai');
-        return { data: demoResponses['/auth/login'] };
-      }
       throw error;
     }
   },
+
   register: async (userData) => {
     try {
       return api.post('/auth/register', userData);
