@@ -85,6 +85,7 @@ export default function Login() {
     try {
       setError('');
       await login(data.email, data.password);
+      // Redirect to patient dashboard immediately
       navigate(roleHome(selectedRole || 'patient'));
     } catch (err) {
       setError(err.response?.data?.detail || t('login.invalidCredentials', 'Invalid email or password'));

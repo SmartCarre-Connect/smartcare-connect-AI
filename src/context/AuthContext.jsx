@@ -38,33 +38,36 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    // DEMO MODE: Check for demo credentials first
+    // PRESENTATION DEMO MODE: Check for demo credentials and skip backend entirely
     const isDemoCredentials = 
       (email === 'demo@smartcare.ai' || email === 'demo@SmartCare-Connect.ai') && 
       password === 'Demo@123';
 
     if (isDemoCredentials) {
-      // Presentation Demo Login - bypass backend
-      console.log('✅ Presentation Demo Mode Activated');
-      localStorage.setItem('SmartCare-Connect_token', 'presentation-demo-token-' + Date.now());
-      localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
+      // 🎭 PRESENTATION MODE - No API call, instant local login
+      console.log('✅ Presentation Demo Mode: Instant local login activated');
+
+      // Create local demo session
+      const demoToken = 'demo-token-' + Date.now();
       const demoUser = {
-        id: 'demo-user',
-        name: 'Demo User',
-        email,
+        id: 'demo-patient-001',
+        name: 'Demo Patient',
+        email: 'demo@smartcare.ai',
         role: 'patient'
       };
-      localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
+
+      // Store session in localStorage (no backend needed)
+      localStorage.setItem('SmartCare-Connect_token', demoToken);
+      localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
+
+      // Update React state
       setUser(demoUser);
       selectRole('patient');
-      // Show toast
-      if (window.__showToast) {
-        window.__showToast('Presentation Demo Mode', 'success');
-      }
+
       return demoUser;
     }
 
-    // Try real backend login
+    // REAL LOGIN: Call backend for actual credentials
     try {
       const res = await authApi.login({ email, password, role: selectedRole });
       if (res?.data?.access_token) {
@@ -83,24 +86,8 @@ export const AuthProvider = ({ children }) => {
       }
       throw new Error('Login failed');
     } catch (error) {
-      // If backend fails (offline, CORS, 404, 500), fall back to demo
-      console.log('⚠️ Backend unavailable, enabling Demo Mode fallback:', error.message);
-      localStorage.setItem('SmartCare-Connect_token', 'presentation-demo-token-' + Date.now());
-      localStorage.setItem('SmartCare-Connect_selected_role', selectedRole);
-      const demoUser = {
-        id: 'demo-user',
-        name: 'Demo User',
-        email,
-        role: selectedRole
-      };
-      localStorage.setItem('SmartCare-Connect_user', JSON.stringify(demoUser));
-      setUser(demoUser);
-      selectRole(selectedRole);
-      // Show toast
-      if (window.__showToast) {
-        window.__showToast('Presentation Demo Mode', 'success');
-      }
-      return demoUser;
+      // Backend failed - re-throw so UI can show error
+      throw error;
     }
   };
 
