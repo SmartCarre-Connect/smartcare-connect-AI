@@ -186,7 +186,8 @@ export const authApi = {
     }
 
     try {
-      return api.post('/auth/login', credentials);
+      const res = await api.post('/auth/login', credentials);
+      return res;
     } catch (error) {
       throw error;
     }
@@ -194,7 +195,8 @@ export const authApi = {
 
   register: async (userData) => {
     try {
-      return api.post('/auth/register', userData);
+      const res = await api.post('/auth/register', userData);
+      return res;
     } catch (error) {
       if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
         enablePresentationMode(true);
@@ -205,7 +207,8 @@ export const authApi = {
   },
   sendOtp: async (payload) => {
     try {
-      return api.post('/auth/send-otp', payload);
+      const res = await api.post('/auth/send-otp', payload);
+      return res;
     } catch (error) {
       if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
         enablePresentationMode(true);
@@ -216,7 +219,8 @@ export const authApi = {
   },
   verifyOtp: async (payload) => {
     try {
-      return api.post('/auth/verify-otp', payload);
+      const res = await api.post('/auth/verify-otp', payload);
+      return res;
     } catch (error) {
       if (presentationModeEnabled || error.code === 'ECONNABORTED' || error.response?.status >= 500) {
         enablePresentationMode(true);
@@ -227,7 +231,8 @@ export const authApi = {
   },
   getMe: async () => {
     try {
-      return api.get('/auth/me');
+      const res = await api.get('/auth/me');
+      return res;
     } catch (error) {
       // Network error, timeout, or server error - use demo fallback
       if (presentationModeEnabled || 
@@ -241,6 +246,7 @@ export const authApi = {
       throw error;
     }
   },
+  updateProfile: (profileData) => api.put('/users/me', profileData),
   updateProfile: (profileData) => api.put('/users/me', profileData),
 };
 

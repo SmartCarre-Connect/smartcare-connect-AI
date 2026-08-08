@@ -48,6 +48,14 @@ export default function RoleSelectionPage() {
       accent: 'from-violet-600 to-fuchsia-500',
     },
     {
+      id: 'trainee',
+      title: 'Trainee',
+      subtitle: 'Duty assignments • GPS attendance • Schedules • Hospital navigation',
+      features: ['Duty assignments', 'GPS attendance', 'Duty schedule', 'Hospital navigation'],
+      icon: BookOpen,
+      accent: 'from-amber-500 to-orange-500',
+    },
+    {
       id: 'hr',
       title: 'HR',
       subtitle: 'Staff management • Recruitment • Attendance • Employee records',

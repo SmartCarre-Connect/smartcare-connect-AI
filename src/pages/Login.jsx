@@ -96,7 +96,7 @@ const AnimCounter = ({ end, suffix = "", label }) => {
 export default function Login() {
   const navigate = useNavigate();
 
-  const { login, selectRole } = useAuth();
+  const { login, selectRole, selectedRole } = useAuth();
 
   const { t } = useLanguage();
 
@@ -109,6 +109,8 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const [focusedField, setFocusedField] = useState(null);
+
+  const VALID_ROLES = ["patient", "doctor", "trainee", "hr", "admin"];
 
   const loginSchema = z.object({
     email: z.string().email(
@@ -150,17 +152,17 @@ export default function Login() {
 
     if (!role) return;
 
-    const currentRole = localStorage.getItem("SmartCare-Connect_selected_role");
-    if (currentRole !== role) {
+    if (VALID_ROLES.includes(role) && role !== selectedRole) {
       selectRole(role);
     }
-  }, [searchParams, selectRole]);
+  }, [searchParams, selectRole, selectedRole]);
 
   useEffect(() => {
     window.__showToast = (message, type = "info") => {
       console.log(`[${type}] ${message}`);
     };
   }, []);
+
   const onSubmit = async (data) => {
     try {
       setError("");
@@ -171,19 +173,23 @@ export default function Login() {
         data.password
       );
 
-      // Determine dashboard
-      const role =
-        loggedInUser?.role ||
-        localStorage.getItem("SmartCare-Connect_selected_role") ||
-        "patient";
+      const role = loggedInUser?.role;
 
-      // Navigate once after successful login
+      if (!role) {
+        throw new Error("Authenticated user has no role");
+      }
+
+      navigate(roleHome(role), {
+        replace: true,
+      });
+
       navigate(roleHome(role), { replace: true });
     } catch (err) {
-      console.error(err);
+      console.error("Login failed:", err);
 
       const message =
         err?.response?.data?.detail ||
+        err?.response?.data?.message ||
         err?.message ||
         "Invalid email or password";
 
@@ -195,10 +201,11 @@ export default function Login() {
     try {
       setError("");
       const demoUser = await login("demo@smartcare.ai", "Demo@123");
-      const role = demoUser?.role || localStorage.getItem("SmartCare-Connect_selected_role") || "patient";
+      const role = demoUser?.role;
+      if (!role) throw new Error("Demo user has no role");
       navigate(roleHome(role), { replace: true });
     } catch (err) {
-      console.error(err);
+      console.error("Demo login failed:", err);
       setError("Demo login failed");
     }
   };
