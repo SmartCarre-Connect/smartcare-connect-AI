@@ -75,12 +75,13 @@ api.interceptors.response.use((response) => ({
 // Demo data fallback for presentation mode
 const demoResponses = {
   '/auth/login': {
-    access_token: 'demo-jwt-token-' + Date.now(),
+    access_token: 'demo-token-' + Date.now(),
     user_id: 'demo-user-id',
     full_name: 'Demo Patient',
     role: 'patient',
     email: 'demo@smartcare.ai',
   },
+
   '/auth/me': {
     id: 'demo-user-id',
     full_name: 'Demo Patient',
@@ -91,7 +92,7 @@ const demoResponses = {
   '/auth/send-otp': { success: true, message: 'OTP sent (demo mode)' },
   '/auth/verify-otp': { success: true, verified: true },
   '/auth/register': {
-    access_token: 'demo-jwt-token-' + Date.now(),
+    access_token: 'demo-token-' + Date.now(),
     user_id: 'demo-new-user-id',
     full_name: 'New Demo User',
     role: 'patient',
