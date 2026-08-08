@@ -66,24 +66,22 @@ export default function RoleSelectionPage() {
   ];
 
   const selectAndProceed = (roleId) => {
+    // Persist selected role via AuthContext
     selectRole(roleId);
 
-    const completed = typeof window !== 'undefined' && (
-      window.localStorage.getItem(`smartcare-onboarding-complete:${roleId}`) === 'true' ||
-      window.localStorage.getItem(`guide_completed_${roleId}`) === 'true'
-    );
-
-    if (!completed) {
-      navigate(`/onboarding?role=${roleId}`);
-      return;
-    }
-
+    // If user is already authenticated, send them to the correct dashboard
     if (user) {
-      navigate(roleHome(roleId));
+      if (user.role === roleId) {
+        navigate(roleHome(roleId), { replace: true });
+      } else {
+        // Different authenticated role; send to login for role switch
+        navigate(`/login?role=${roleId}`, { replace: true });
+      }
       return;
     }
 
-    navigate(`/login?role=${roleId}`);
+    // Unauthenticated users -> login flow
+    navigate(`/login?role=${roleId}`, { replace: true });
   };
 
   const handleContinue = () => selectAndProceed(selectedRole);

@@ -32,7 +32,7 @@ export default function LanguageSelectionPage() {
           {languageOptions.map((item, index) => {
             const active = language === item.code;
             return (
-              <motion.button
+              <motion.div
                 key={item.code}
                 initial={{ opacity: 0, y: 18, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -40,6 +40,9 @@ export default function LanguageSelectionPage() {
                 whileHover={{ y: -4, scale: 1.01 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setLanguage(item.code)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLanguage(item.code); } }}
                 className={`rounded-[28px] border p-6 text-left shadow-glass backdrop-blur-xl transition-all ${active ? 'border-brand-400 bg-brand-50 shadow-[0_18px_40px_rgba(37,99,235,0.16)]' : 'border-slate-200 bg-white/80 hover:border-slate-300'}`}
               >
                 <div className="flex items-start justify-between gap-3">
