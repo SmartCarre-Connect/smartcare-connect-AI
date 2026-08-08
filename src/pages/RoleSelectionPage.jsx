@@ -136,8 +136,8 @@ export default function RoleSelectionPage() {
                   key={r.id}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedRole(r.id); } }}
-                  onClick={() => { setSelectedRole(r.id); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectRole(r.id); setSelectedRole(r.id); } }}
+                  onClick={() => { selectRole(r.id); setSelectedRole(r.id); }}
                   variants={card}
                   whileHover={{ translateY: -6 }}
                   className={`group relative flex h-full w-full flex-col items-stretch overflow-hidden rounded-[20px] border p-6 text-left transition-all duration-300 focus:outline-none ${
