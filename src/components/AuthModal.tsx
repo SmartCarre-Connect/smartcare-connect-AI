@@ -17,6 +17,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 
+
 interface AuthModalProps {
   currentLanguage: Language;
   selectedRole: UserRole;

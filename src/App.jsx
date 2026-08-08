@@ -14,6 +14,7 @@ import RoleSelectionPage from './pages/RoleSelectionPage';
 import LanguageSelectionPage from './pages/LanguageSelectionPage';
 import SplashScreen from './pages/SplashScreen';
 import Dashboard from './pages/Dashboard';
+import NotFound from './pages/NotFound';
 import MedicalReports from './pages/MedicalReports';
 import RAGChat from './pages/RAGChat';
 import Prescriptions from './pages/Prescriptions';

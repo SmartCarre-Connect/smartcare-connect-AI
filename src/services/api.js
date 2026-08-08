@@ -7,8 +7,9 @@ const PRODUCTION_API_URL = 'https://smartcare-connect-api.onrender.com/api/v1';
 const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api/v1' : PRODUCTION_API_URL);
 
 // Global flag to enable presentation mode (fallback to demo data when backend fails)
-// Presentation mode is enabled by default for offline/demo presentation builds.
-let presentationModeEnabled = true;
+// IMPORTANT: Presentation mode is DISABLED by default for production.
+// It should only be enabled for graceful fallback when backend is unreachable.
+let presentationModeEnabled = false;
 
 const isDemoCredentialPayload = (credentials) =>
   (credentials?.email === 'demo@smartcare.ai' || credentials?.email === 'demo@SmartCare-Connect.ai') &&
@@ -37,6 +38,21 @@ api.interceptors.response.use((response) => ({
   ...response,
   data: response.data?.data ?? response.data,
 }), (error) => {
+  // Handle 401 Unauthorized - clear auth and redirect to login
+  if (error.response?.status === 401) {
+    console.warn('⚠️ Unauthorized (401) - clearing authentication');
+    localStorage.removeItem('SmartCare-Connect_token');
+    localStorage.removeItem('SmartCare-Connect_user');
+    localStorage.removeItem('SmartCare-Connect_selected_role');
+    return Promise.reject(error);
+  }
+
+  // Handle 403 Forbidden
+  if (error.response?.status === 403) {
+    console.warn('⚠️ Forbidden (403) - access denied');
+    return Promise.reject(error);
+  }
+
   // Presentation mode fallback: return mock data on API errors
   if (error.config?.url) {
     const mockBase = error.config.url.replace(API_BASE, '');

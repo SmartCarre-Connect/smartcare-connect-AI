@@ -1,5 +1,4 @@
 HeyGen Integration (server-side proxy)
-====================================
 
 This folder contains a lightweight HeyGen proxy that lets the frontend request avatar video generation
 without exposing your HeyGen API key to the browser.

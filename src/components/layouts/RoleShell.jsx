@@ -27,7 +27,6 @@ export default function RoleShell() {
     return <Navigate to="/welcome" replace />;
   }
 
-
   return (
     <div className="min-h-screen bg-surface flex overflow-hidden">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -57,9 +56,9 @@ export default function RoleShell() {
               </motion.div>
             </AnimatePresence>
           </div>
-          </main>
-            <FloatingAssistant />
-        </div>
+        </main>
+        <FloatingAssistant />
+      </div>
     </div>
   );
 }

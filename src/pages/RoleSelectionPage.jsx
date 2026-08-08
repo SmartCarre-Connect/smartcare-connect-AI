@@ -134,55 +134,59 @@ export default function RoleSelectionPage() {
             const Active = selectedRole === r.id;
             const Icon = r.icon;
             return (
-              <motion.button
-                key={r.id}
-                onClick={() => { setSelectedRole(r.id); }}
-                variants={card}
-                whileHover={{ translateY: -6 }}
-                className={`group relative flex h-full w-full flex-col items-stretch overflow-hidden rounded-[20px] border p-6 text-left transition-all duration-300 focus:outline-none ${
-                  Active
-                    ? 'border-sky-400/40 bg-gradient-to-br from-slate-900/80 to-slate-800/60 shadow-[0_30px_80px_-30px_rgba(56,189,248,0.14)]'
-                    : 'border-white/6 bg-slate-950/60 hover:border-sky-400/30 hover:shadow-lg'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className={`inline-flex h-16 w-16 items-center justify-center rounded-xl p-3 shadow-md text-white`} style={{ background: Active ? undefined : undefined }}>
-                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${r.accent}`}>
-                      <Icon className="h-6 w-6 text-white" />
+              <motion.div
+                  key={r.id}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedRole(r.id); } }}
+                  onClick={() => { setSelectedRole(r.id); }}
+                  variants={card}
+                  whileHover={{ translateY: -6 }}
+                  className={`group relative flex h-full w-full flex-col items-stretch overflow-hidden rounded-[20px] border p-6 text-left transition-all duration-300 focus:outline-none ${
+                    Active
+                      ? 'border-sky-400/40 bg-gradient-to-br from-slate-900/80 to-slate-800/60 shadow-[0_30px_80px_-30px_rgba(56,189,248,0.14)]'
+                      : 'border-white/6 bg-slate-950/60 hover:border-sky-400/30 hover:shadow-lg'
+                  }`} 
+                >
+                  <div className="flex items-center justify-between">
+                    <div className={`inline-flex h-16 w-16 items-center justify-center rounded-xl p-3 shadow-md text-white`} style={{ background: Active ? undefined : undefined }}>
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${r.accent}`}>
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
                     </div>
+                    <div className={`rounded-full px-3 py-1 text-xs font-semibold ${Active ? 'bg-sky-500/15 text-sky-200' : 'bg-white/4 text-slate-300'}`}>{r.title}</div>
                   </div>
-                  <div className={`rounded-full px-3 py-1 text-xs font-semibold ${Active ? 'bg-sky-500/15 text-sky-200' : 'bg-white/4 text-slate-300'}`}>{r.title}</div>
-                </div>
 
-                <h3 className="mt-4 text-lg font-semibold text-white">{r.title}</h3>
-                <p className="mt-2 text-sm text-slate-300">{r.subtitle}</p>
+                  <h3 className="mt-4 text-lg font-semibold text-white">{r.title}</h3>
+                  <p className="mt-2 text-sm text-slate-300">{r.subtitle}</p>
 
-                <ul className="mt-4 space-y-2 text-sm text-slate-300 flex-1">
-                  {r.features.slice(0, 6).map((f) => (
-                    <li key={f} className="flex items-center gap-3">
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/6 text-sky-300">
-                        <Check className="h-4 w-4" />
-                      </span>
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <ul className="mt-4 space-y-2 text-sm text-slate-300 flex-1">
+                    {r.features.slice(0, 6).map((f) => (
+                      <li key={f} className="flex items-center gap-3">
+                        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/6 text-sky-300">
+                          <Check className="h-4 w-4" />
+                        </span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                <div className="mt-6 flex items-center justify-between">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); selectAndProceed(r.id); }}
-                    className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
-                      Active ? 'bg-sky-500 text-white border-transparent shadow' : 'bg-white/4 text-white border-white/6 hover:bg-sky-500 hover:border-transparent'
-                    }`}
-                  >
-                    Continue as {r.title}
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                  <div className="text-xs text-slate-400">{r.features.length} features</div>
-                </div>
+                  <div className="mt-6 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); selectAndProceed(r.id); }}
+                      className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                        Active ? 'bg-sky-500 text-white border-transparent shadow' : 'bg-white/4 text-white border-white/6 hover:bg-sky-500 hover:border-transparent'
+                      }`}
+                    >
+                      Continue as {r.title}
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                    <div className="text-xs text-slate-400">{r.features.length} features</div>
+                  </div>
 
-                <span className={`absolute -inset-x-0 bottom-0 h-1 bg-gradient-to-r ${r.accent} opacity-0 transition-opacity duration-300 ${Active ? 'opacity-100' : 'group-hover:opacity-60'}`} />
-              </motion.button>
+                  <span className={`absolute -inset-x-0 bottom-0 h-1 bg-gradient-to-r ${r.accent} opacity-0 transition-opacity duration-300 ${Active ? 'opacity-100' : 'group-hover:opacity-60'}`} />
+                </motion.div>
             );
           })}
         </motion.div>
@@ -201,7 +205,7 @@ export default function RoleSelectionPage() {
 
           <div className="hidden sm:flex items-center gap-4">
             <div className="text-xs text-slate-400">Need help?</div>
-            <button onClick={handleContinue} className="rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm">
+            <button type="button" onClick={handleContinue} className="rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-400 px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm">
               Continue
             </button>
           </div>

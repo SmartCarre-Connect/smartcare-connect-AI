@@ -1,152 +1,222 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../services/api';
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { authApi } from "../services/api";
 
 const AuthContext = createContext();
-const roleKey = 'SmartCare-Connect_selected_role';
+
+const TOKEN_KEY = "SmartCare-Connect_token";
+const USER_KEY = "SmartCare-Connect_user";
+const ROLE_KEY = "SmartCare-Connect_selected_role";
 
 export const AuthProvider = ({ children }) => {
-  // Initialize user synchronously from localStorage if a demo token exists
-  const [user, setUser] = useState(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('SmartCare-Connect_token') : null;
-    if (token && typeof token === 'string' && token.startsWith('demo-')) {
-      const stored = typeof window !== 'undefined' ? localStorage.getItem('SmartCare-Connect_user') : null;
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (e) {
-          console.error('Failed to parse initial demo user:', e);
-        }
-      }
-    }
-    return null;
-  });
-
-  const [loading, setLoading] = useState(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('SmartCare-Connect_token') : null;
-    // If demo token exists, we're not loading (sync init above handled it)
-    if (token && typeof token === 'string' && token.startsWith('demo-')) {
-      return false;
-    }
-    // Otherwise, we need to validate real token, so we're loading
-    return !!token;
-  });
-
-  const [selectedRole, setSelectedRole] = useState(() => localStorage.getItem(roleKey) || 'patient');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState([]);
+  const [selectedRole, setSelectedRoleState] = useState(
+    localStorage.getItem(ROLE_KEY) || "patient"
+  );
 
-  const selectRole = (role) => {
-    localStorage.setItem(roleKey, role);
-    setSelectedRole(role);
-    setPermissions([]);
-  };
-
-  // For production: validate real token asynchronously
-  useEffect(() => {
-    const token = localStorage.getItem('SmartCare-Connect_token');
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
-    // If it's a demo token, we already loaded it synchronously above
-    if (typeof token === 'string' && token.startsWith('demo-')) {
-      setLoading(false);
-      return;
-    }
-
-    // Production: validate real token with backend
-    authApi.getMe()
-      .then((res) => {
-        setUser(res.data || null);
-      })
-      .catch(() => {
-        localStorage.removeItem('SmartCare-Connect_token');
-        setUser(null);
-      })
-      .finally(() => setLoading(false));
+  const selectRole = useCallback((role) => {
+    if (!role || typeof role !== "string") return;
+    setSelectedRoleState((prevRole) => {
+      if (prevRole === role) return prevRole;
+      localStorage.setItem(ROLE_KEY, role);
+      return role;
+    });
   }, []);
 
-  const login = async (email, password) => {
-    const normalizedEmail = email?.trim().toLowerCase();
-    const normalizedPassword = password?.trim();
-    const demoCredentials =
-      (normalizedEmail === 'demo@smartcare.ai' || normalizedEmail === 'demo@SmartCare-Connect.ai') &&
-      normalizedPassword === 'Demo@123';
-
-    try {
-      const res = await authApi.login({
-        email: normalizedEmail,
-        password: normalizedPassword,
-        role: selectedRole,
-      });
-
-      if (res?.data?.access_token) {
-        localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-        const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
-        const authenticatedUser = profile || {
-          id: res.data.user_id || null,
-          name: res.data.full_name || email,
-          email: res.data.email || normalizedEmail,
-          role: res.data.role || selectedRole,
-        };
-
-        localStorage.setItem('SmartCare-Connect_user', JSON.stringify(authenticatedUser));
-        setUser(authenticatedUser);
-        selectRole(authenticatedUser.role || selectedRole || 'patient');
-
-        if (demoCredentials) {
-          localStorage.setItem('SmartCare-Connect_selected_role', 'patient');
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) {
+          setLoading(false);
+          return;
         }
 
-        return authenticatedUser;
+        if (token.startsWith("demo-token-")) {
+          try {
+            const savedUser = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+            if (savedUser && savedUser.id) {
+              setUser(savedUser);
+              selectRole(savedUser.role || "patient");
+            } else {
+              localStorage.removeItem(TOKEN_KEY);
+              localStorage.removeItem(USER_KEY);
+              localStorage.removeItem(ROLE_KEY);
+              setUser(null);
+            }
+          } catch (err) {
+            console.error("Failed to restore demo session:", err);
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            localStorage.removeItem(ROLE_KEY);
+            setUser(null);
+          }
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const res = await authApi.getMe();
+          const profile = res.data;
+          setUser(profile);
+          if (profile?.role) {
+            selectRole(profile.role);
+          }
+        } catch (error) {
+          console.warn("Session restore failed, clearing auth");
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          localStorage.removeItem(ROLE_KEY);
+          setUser(null);
+        }
+      } finally {
+        setLoading(false);
       }
+    };
 
-      throw new Error('Login failed');
-    } catch (error) {
-      throw error;
-    }
-  };
+    initializeAuth();
+  }, [selectRole]);
 
-  const register = async (userData) => {
-    const res = await authApi.register(userData);
-    if (res?.data?.access_token) {
-      localStorage.setItem('SmartCare-Connect_token', res.data.access_token);
-      const profile = await authApi.getMe().then((r) => r.data).catch(() => null);
-      const registeredUser = profile || {
-        id: res.data.user_id || 'new-user',
-        name: userData.full_name || userData.name || '',
-        email: userData.email,
-        role: res.data.role || userData.role || selectedRole,
+  const login = useCallback(async (email, password) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password.trim();
+
+    if (
+      normalizedEmail === "demo@smartcare.ai" &&
+      normalizedPassword === "Demo@123"
+    ) {
+      const demoUser = {
+        id: "demo-patient-001",
+        name: "Demo Patient",
+        full_name: "Demo Patient",
+        email: "demo@smartcare.ai",
+        role: "patient",
       };
-      setUser(registeredUser);
-      selectRole(registeredUser.role);
-      return res.data;
+
+      const demoToken = "demo-token-" + Date.now();
+
+      localStorage.setItem(TOKEN_KEY, demoToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(demoUser));
+      localStorage.setItem(ROLE_KEY, "patient");
+
+      setUser(demoUser);
+      selectRole("patient");
+
+      return demoUser;
     }
-    throw new Error('Registration failed');
-  };
 
-  const logout = () => {
-    localStorage.removeItem('SmartCare-Connect_token');
-    localStorage.removeItem('SmartCare-Connect_user');
-    localStorage.removeItem('SmartCare-Connect_selected_role');
+    const response = await authApi.login({
+      email: normalizedEmail,
+      password: normalizedPassword,
+      role: selectedRole,
+    });
+
+    if (!response?.data?.access_token) {
+      throw new Error("Login failed");
+    }
+
+    localStorage.setItem(TOKEN_KEY, response.data.access_token);
+
+    let profile;
+    try {
+      const meRes = await authApi.getMe();
+      profile = meRes.data;
+    } catch (err) {
+      profile = {
+        id: response.data.user_id,
+        name: response.data.full_name || normalizedEmail,
+        full_name: response.data.full_name || normalizedEmail,
+        email: normalizedEmail,
+        role: response.data.role || selectedRole,
+      };
+    }
+
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
+    setUser(profile);
+    selectRole(profile.role || "patient");
+
+    return profile;
+  }, [selectedRole, selectRole]);
+
+  const register = useCallback(async (data) => {
+    const response = await authApi.register(data);
+
+    if (!response?.data?.access_token) {
+      throw new Error("Registration failed");
+    }
+
+    localStorage.setItem(TOKEN_KEY, response.data.access_token);
+
+    let profile;
+    try {
+      const meRes = await authApi.getMe();
+      profile = meRes.data;
+    } catch (err) {
+      profile = {
+        id: response.data.user_id,
+        name: response.data.full_name,
+        full_name: response.data.full_name,
+        email: data.email,
+        role: response.data.role || "patient",
+      };
+    }
+
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
+    setUser(profile);
+    selectRole(profile.role || "patient");
+
+    return profile;
+  }, [selectRole]);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ROLE_KEY);
+    setPermissions([]);
     setUser(null);
-  };
+    setSelectedRoleState("patient");
+  }, []);
 
-  const updateUserProfile = async (data) => {
+  const updateUserProfile = useCallback(async (data) => {
     try {
       const res = await authApi.updateProfile(data);
       setUser(res.data);
+      localStorage.setItem(USER_KEY, JSON.stringify(res.data));
     } catch (err) {
-      setUser((prev) => ({ ...prev, ...data }));
+      const updated = {
+        ...user,
+        ...data,
+      };
+      setUser(updated);
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
     }
+  }, [user]);
+
+  const value = {
+    user,
+    loading,
+    selectedRole,
+    permissions,
+    login,
+    register,
+    logout,
+    selectRole,
+    setPermissions,
+    updateUserProfile,
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, selectedRole, selectRole, permissions, setPermissions, login, register, logout, updateUserProfile }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};

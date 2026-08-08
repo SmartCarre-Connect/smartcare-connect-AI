@@ -94,7 +94,7 @@ async def build_patient_context(db, current_user: dict) -> str:
     return "\n".join(parts)
 
 
-# =============== AI Report Analysis ===============
+
 
 @router.post("/analyze-report/{report_id}")
 async def analyze_report(report_id: str, current_user: dict = Depends(get_current_user)):
