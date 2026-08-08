@@ -79,7 +79,7 @@ export default function LanguageSelectionPage() {
                     <div className="text-xs text-slate-400">Voice preview</div>
                   </div>
                 </div>
-              </motion.button>
+              </motion.div>
             );
           })}
         </div>
