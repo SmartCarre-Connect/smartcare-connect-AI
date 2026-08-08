@@ -8,7 +8,16 @@ export default function RoleRoute({ allowedRoles, permission, redirectTo = '/wel
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-600">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+          <div className="text-sm">Checking permissions...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/welcome" replace state={{ from: location }} />;
